@@ -2,7 +2,7 @@ import lib.operations as ops
 import os
 import yaml
 
-with open(os.environ['WORKSPACE'] + "/ci-scripts/scripts/projects.yaml") as projects_file:
+with open(os.environ['WORKSPACE'] + "/gate/configurations/projects.yaml") as projects_file:
     projects = yaml.load(projects_file.read())
 
 recombined_branch = os.environ['GERRIT_BRANCH']

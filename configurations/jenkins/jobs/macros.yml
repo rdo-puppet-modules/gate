@@ -13,12 +13,12 @@
         - workspace-cleanup
 
 - scm:
-    name: gate-scripts
+    name: opm-gate
     scm:
         - git:
-            name: ci-scripts
-            basedir: ci-scripts
-            url: https://github.com/rdo-puppet-modules/ci-scripts.git
+            basedir: gate
+            url: https://github.com/rdo-puppet-modules/gate.git
+            skip-tag: true
 
 - scm:
     name: original-project
@@ -27,9 +27,11 @@
             name: original
             refspec: $GERRIT_REFSPEC
             url: ssh://openstack-gerrit/$GERRIT_PROJECT
-            branches: $GERRIT_BRANCH
+            branches:
+                - $GERRIT_BRANCH
             choosing-strategy: gerrit
             basedir: $GERRIT_PROJECT
+            skip-tag: true
 
 - scm:
     name: khaleesi
@@ -37,8 +39,10 @@
         - git:
             refspec: +refs/changes/*:refs/remotes/origin/changes/*
             url: https://github.com/redhat-openstack/khaleesi.git
-            branches: changes/59/232059/96
+            branches:
+                - changes/59/232059/96
             basedir: khaleesi
+            skip-tag: true
 
 - scm:
     name: khaleesi-settings
@@ -46,6 +50,7 @@
         - git:
             url: https://github.com/redhat-openstack/khaleesi-settings.git
             basedir: khaleesi-settings
+            skip-tag: true
 
 - scm:
     name: replica-project
@@ -54,9 +59,11 @@
             name: replica
             refspec: $GERRIT_REFSPEC
             url: ssh://gerrithub/$GERRIT_PROJECT
-            branches: $GERRIT_BRANCH
+            branches:
+                - $GERRIT_BRANCH
             choosing-strategy: gerrit
             basedir: $GERRIT_PROJECT
+            skip-tag: true
 
 - trigger:
     name: daily-once

@@ -2,7 +2,7 @@ import lib.operations as ops
 import os
 import yaml
 
-with open(os.environ['WORKSPACE'] + "/ci-scripts/scripts/projects.yaml") as projects_file:
+with open(os.environ['WORKSPACE'] + "/gate/configurations/projects.yaml") as projects_file:
     projects = yaml.load(projects_file.read())
 
 #for project in projects:
@@ -12,7 +12,7 @@ for project in ['puppetlabs-sysctl']:
         os.mkdir(base_dir)
     except OSError:
         pass
-    gitnome = ops.Polymerase(os.environ['WORKSPACE'] + "/ci-scripts/scripts/projects.yaml", project, base_dir)
+    gitnome = ops.Polymerase(os.environ['WORKSPACE'] + "/gate/configurations/projects.yaml", project, base_dir)
 
 
     print "delete recomb branches in github"

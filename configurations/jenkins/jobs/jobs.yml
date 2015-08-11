@@ -2,47 +2,49 @@
 - job:
     name: opm-ci-upstream-poll-projects
     scm:
-        - gate-scripts
+        - opm-gate
     triggers:
         - daily-once
     builders:
         - shell: |
-            python ci-scripts/scripts/poll-upstream-projects.py
+            python gate/scripts/poll-upstream-projects.py
 
 - job:
     name: opm-ci-upstream-merge-event
     scm:
         - original-project
-        - gate-scripts
+        - opm-gate
     trigger:
         - upstream-gerrit-merge-event
     builders:
         - shell: |
-            python ci-scripts/scripts/event-upstream-merge.py
+            python gate/scripts/event-upstream-merge.py
 
 - job:
-    name: opm-ci-repo-maintenance
+    name: opm-ci-repos-maintenance
     scm:
-        - gate-scripts
+        - opm-gate
     triggers:
         - daily-once
     builders:
         - shell: |
-            python ci-scripts/scripts/repos-maintenance.py
+            python gate/scripts/repos-maintenance.py
 
 - job:
     name: opm-ci-midstream-package
     scm:
-        - gate-scripts
+        - opm-gate
         - khaleesi
         - khaleesi-settings
     trigger:
         - replica-gerrit-recombination-merge-event
     builders:
         - shining-panda:
+            system-site-packages: true
+            python-version: system-CPython-2.7
             build-environment: virtualenv
             command: |
-                python ci-scripts/scripts/generate-projects-vars.py ci-scripts/scripts/projects.yaml
+                python gate/scripts/generate-projects-vars.py gate/configurations/projects.yaml
                 cp projects-vars.yaml khaleesi
 
                 source khaleesi-settings/jenkins/ansible_settings.sh
@@ -83,7 +85,7 @@
                       --product-version=kilo \
                       --product-version-repo=delorean \
                       --extra-vars @projects-vars.yaml \
-                      --extra-vars local_spec_dir=$WORKSPACE/ci-scripts/specs/ \
+                      --extra-vars local_spec_dir=$WORKSPACE/gate/specs/ \
                       --extra-vars spec_dir=/root/rpmbuild/SPECS \
                       --extra-vars sources_dir=/root/rpmbuild/SOURCES \
                       --extra-vars workspace=$WORKSPACE \
@@ -91,30 +93,34 @@
 
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/package.yml
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
-
+    publishers:
+        - archive:
+            artifacts: '*.rpm'
 
 - job:
     name: opm-ci-midstream-patches-newpatch
     scm:
         - replica-project
-        - gate-scripts
+        - opm-gate
     trigger:
         - replica-gerrit-patches-create-event
     builders:
         - shell: |
-            python ci-scripts/scripts/event-patches-patchset.py
+            python gate/scripts/event-patches-patchset.py
 
 - job:
     name: opm-ci-midstream-recombination-tests
     scm:
         - replica-project
-        - gate-scripts
+        - opm-gate
         - khaleesi
         - khaleesi-settings
     trigger:
         - replica-gerrit-recombination-create-event
     builders:
         - shining-panda:
+            system-site-packages: true
+            python-version: system-CPython-2.7
             build-environment: virtualenv
             command: |
                 #pip install -U ansible; ansible --version
@@ -129,7 +135,7 @@
                 source $WORKSPACE/../../private-exports
 
                 # generate extra project vars
-                python ci-scripts/scripts/generate-project-vars.py ci-scripts/scripts/projects.yaml
+                python gate/scripts/generate-project-vars.py gate/configurations/projects.yaml
                 cp project-vars.yaml khaleesi
 
                 cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
@@ -171,23 +177,23 @@
     name: opm-ci-midstream-upstream-recombination-verified
     scm:
         - replica-project
-        - gate-scripts
+        - opm-gate
     trigger:
         - replica-gerrit-original-recombination-vote-event
     builders:
         - shell: |
-            python ci-scripts/scripts/event-replica-recombination-verified.py
+            python gate/scripts/event-replica-recombination-verified.py
 
 - job:
-    name: opm-ci-midstream-upstream-patches-verified
+    name: opm-ci-midstream-patches-recombination-verified
     scm:
         - replica-project
-        - gate-scripts
+        - opm-gate
     trigger:
         - replica-gerrit-patches-recombination-vote-event
     builders:
         - shell: |
-            python ci-scripts/scripts/event-patches-recombination-verified.py
+            python gate/scripts/event-patches-recombination-verified.py
 
 
 
