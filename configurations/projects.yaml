@@ -1,0 +1,799 @@
+---
+puppet-ceilometer:
+    deploy-name: ceilometer
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-ceilometer
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-ceilometer
+        tests:
+        - upstream
+        - stability
+puppet-ceph:
+    deploy-name: ceph
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-ceph
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-ceph
+        tests:
+        - upstream
+        - stability
+puppet-certmonger:
+    deploy-name: certmonger
+    original:
+        location: github
+        name: rcritten/puppet-certmonger
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-certmonger
+        tests: null
+puppet-cinder:
+    deploy-name: cinder
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-cinder
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-cinder
+        tests:
+        - upstream
+        - stability
+puppet-common:
+    deploy-name: common
+    original:
+        location: github
+        name: purpleidea/puppet-common
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-common
+        tests: null
+puppet-galera:
+    deploy-name: galera
+    original:
+        location: github
+        name: redhat-openstack/puppet-galera
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-galera
+        tests: null
+puppet-glance:
+    deploy-name: glance
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-glance
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-glance
+        tests:
+        - upstream
+        - stability
+puppet-gluster:
+    deploy-name: gluster
+    original:
+        location: github
+        name: purpleidea/puppet-gluster
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-gluster
+        tests: null
+puppet-gnocchi:
+    deploy-name: gnocchi
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-gnocchi
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-gnocchi
+        tests:
+        - upstream
+        - stability
+puppet-heat:
+    deploy-name: heat
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-heat
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-heat
+        tests:
+        - upstream
+        - stability
+puppet-horizon:
+    deploy-name: horizon
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-horizon
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-horizon
+        tests:
+        - upstream
+        - stability
+puppet-ironic:
+    deploy-name: ironic
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-ironic
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-ironic
+        tests:
+        - upstream
+        - stability
+puppet-keystone:
+    deploy-name: keystone
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-keystone
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-keystone
+        tests:
+        - upstream
+        - stability
+puppet-manila:
+    deploy-name: manila
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-manila
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-manila
+        tests:
+        - upstream
+        - stability
+puppet-memcached:
+    deploy-name: memcached
+    original:
+        location: github
+        name: saz/puppet-memcached
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-memcached
+        tests: null
+puppet-snmp:
+    deploy-name: snmp
+    original:
+        location: github
+        name: saz/puppet-snmp
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-snmp
+        tests: null
+puppet-module-keepalived:
+    deploy-name: module-keepalived
+    original:
+        location: github
+        name: pdxcat/puppet-module-keepalived
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-module-keepalived
+        tests: null
+puppet-module-collectd:
+    deploy-name: module-collectd
+    original:
+        location: github
+        name: pdxcat/puppet-module-collectd
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-module-collectd
+        tests: null
+puppet-module-data:
+    deploy-name: module-data
+    original:
+        location: github
+        name: ripienaar/puppet-module-data
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-module-data
+        tests: null
+puppet-n1k-vsm:
+    deploy-name: n1k_vsm
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-n1k-vsm
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-n1k-vsm
+        tests:
+        - upstream
+        - stability
+puppet-nagios-openstack:
+    deploy-name: nagios
+    original:
+        location: github
+        name: gildub/puppet-nagios-openstack
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-nagios-openstack
+        tests: null
+puppet-neutron:
+    deploy-name: neutron
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-neutron
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-neutron
+        tests:
+        - upstream
+        - stability
+puppet-nova:
+    deploy-name: nova
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-nova
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-nova
+        tests:
+        - upstream
+        - stability
+puppet-nssdb:
+    deploy-name: nssdb
+    original:
+        location: github
+        name: rcritten/puppet-nssdb
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-nssdb
+        tests: null
+puppet-openstack_extras:
+    deploy-name: openstack_extras
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-openstack_extras
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-openstack_extras
+        tests:
+        - upstream
+        - stability
+puppet-openstacklib:
+    deploy-name: openstacklib
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-openstacklib
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-openstacklib
+        tests:
+        - upstream
+        - stability
+puppet-pacemaker:
+    deploy-name: pacemaker
+    original:
+        location: github
+        name: redhat-openstack/puppet-pacemaker
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-pacemaker
+        tests: null
+puppet-puppet:
+    deploy-name: puppet
+    original:
+        location: github
+        name: purpleidea/puppet-puppet
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-puppet
+        tests: null
+puppet-qpid:
+    deploy-name: qpid
+    original:
+        location: github
+        name: dprince/puppet-qpid
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-qpid
+        tests: null
+puppet-redis:
+    deploy-name: redis
+    original:
+        location: github
+        name: arioch/puppet-redis
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-redis
+        tests: null
+puppet-remote:
+    deploy-name: remote
+    original:
+        location: github
+        name: paramite/puppet-remote
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-remote
+        tests: null
+puppet-sahara:
+    deploy-name: sahara
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-sahara
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-sahara
+        tests:
+        - upstream
+        - stability
+puppet-ssh:
+    deploy-name: ssh
+    original:
+        location: github
+        name: saz/puppet-ssh
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-ssh
+        tests: null
+puppet-staging:
+    deploy-name: staging
+    original:
+        location: github
+        name: nanliu/puppet-staging
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-staging
+        tests: null
+puppet-swift:
+    deploy-name: swift
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-swift
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-swift
+        tests:
+        - upstream
+        - stability
+puppet-tempest:
+    deploy-name: tempest
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-tempest
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-tempest
+        tests:
+        - upstream
+        - stability
+puppet-timezone:
+    deploy-name: timezone
+    original:
+        location: github
+        name: saz/puppet-timezone
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-timezone
+        tests: null
+puppet-tripleo:
+    deploy-name: tripleo
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-tripleo
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-tripleo
+        tests:
+        - upstream
+        - stability
+puppet-trove:
+    deploy-name: trove
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-trove
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-trove
+        tests:
+        - upstream
+        - stability
+puppet-tuskar:
+    deploy-name: tuskar
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-tuskar
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-tuskar
+        tests:
+        - upstream
+        - stability
+puppet-vlan:
+    deploy-name: vlan
+    original:
+        location: github
+        name: derekhiggins/puppet-vlan
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-vlan
+        tests: null
+puppet-vswitch:
+    deploy-name: vswitch
+    original:
+        location: openstack-gerrit
+        name: openstack/puppet-vswitch
+        type: gerrit
+        watch-branches:
+        - master
+        watch-method: events
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-vswitch
+        tests:
+        - upstream
+        - stability
+puppet_aviator:
+    deploy-name: aviator
+    original:
+        location: github
+        name: aimonb/puppet_aviator
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet_aviator
+        tests: null
+puppetlabs-apache:
+    deploy-name: apache
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-apache
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-apache
+        tests: null
+puppetlabs-corosync:
+    deploy-name: corosync
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-corosync
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-corosync
+        tests: null
+puppetlabs-concat:
+    deploy-name: concat
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-concat
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-concat
+        tests: null
+puppetlabs-firewall:
+    deploy-name: firewall
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-firewall
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-firewall
+        tests: null
+puppetlabs-haproxy:
+    deploy-name: haproxy
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-haproxy
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-haproxy
+        tests: null
+puppetlabs-inifile:
+    deploy-name: inifile
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-inifile
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-inifile
+        tests: null
+puppetlabs-mongodb:
+    deploy-name: mongodb
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-mongodb
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-mongodb
+        tests: null
+puppetlabs-mysql:
+    deploy-name: mysql
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-mysql
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-mysql
+        tests: null
+puppetlabs-ntp:
+    deploy-name: ntp
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-ntp
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-ntp
+        tests: null
+puppetlabs-rabbitmq:
+    deploy-name: rabbitmq
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-rabbitmq
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-rabbitmq
+        tests: null
+puppetlabs-rsync:
+    deploy-name: rsync
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-rsync
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-rsync
+        tests: null
+puppetlabs-stdlib:
+    deploy-name: stdlib
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-stdlib
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-stdlib
+        tests: null
+puppetlabs-sysctl:
+    deploy-name: sysctl
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-sysctl
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-sysctl
+        tests: null
+puppetlabs-vcsrepo:
+    deploy-name: vcsrepo
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-vcsrepo
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-vcsrepo
+        tests: null
+puppetlabs-xinetd:
+    deploy-name: xinetd
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-xinetd
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-xinetd
+        tests: null

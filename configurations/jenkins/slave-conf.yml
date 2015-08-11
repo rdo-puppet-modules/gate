@@ -1,0 +1,22 @@
+# REQUIREMENTS
+# install git review on slaves
+# credentials for jenkins and slave user
+
+# configure slave with this for job user
+# and create ssh key
+#Host gerrithub
+#    Hostname review.gerrithub.io
+#    Port 29418
+#    User rdo-ci-service
+#    StrictHostKeyChecking no
+#    IdentityFile ~/.ssh/openstack-ci-service-rsa
+#Host gerrit-openstack
+#    Hostname review.openstack.org
+#    Port 29418
+#    User rdo-ci-service
+#    StrictHostKeyChecking no
+#    IdentityFile ~/.ssh/openstack-ci-service-rsa
+#
+# set up git username and email
+# install ansible
+# install pyyaml

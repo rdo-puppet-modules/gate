@@ -1,0 +1,194 @@
+---
+- job:
+    name: opm-ci-upstream-poll-projects
+    scm:
+        - gate-scripts
+    triggers:
+        - daily-once
+    builders:
+        - shell: |
+            python ci-scripts/scripts/poll-upstream-projects.py
+
+- job:
+    name: opm-ci-upstream-merge-event
+    scm:
+        - original-project
+        - gate-scripts
+    trigger:
+        - upstream-gerrit-merge-event
+    builders:
+        - shell: |
+            python ci-scripts/scripts/event-upstream-merge.py
+
+- job:
+    name: opm-ci-repo-maintenance
+    scm:
+        - gate-scripts
+    triggers:
+        - daily-once
+    builders:
+        - shell: |
+            python ci-scripts/scripts/repos-maintenance.py
+
+- job:
+    name: opm-ci-midstream-package
+    scm:
+        - gate-scripts
+        - khaleesi
+        - khaleesi-settings
+    trigger:
+        - replica-gerrit-recombination-merge-event
+    builders:
+        - shining-panda:
+            build-environment: virtualenv
+            command: |
+                python ci-scripts/scripts/generate-projects-vars.py ci-scripts/scripts/projects.yaml
+                cp projects-vars.yaml khaleesi
+
+                source khaleesi-settings/jenkins/ansible_settings.sh
+                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
+                export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
+                export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
+                export ANSIBLE_LOG_PATH=/tmp/ansible.log
+                export KHALEESI_VERBOSE=true
+                source $WORKSPACE/../../private-exports
+
+                cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
+                provisioner:
+                    remote_user: root
+                    key_file: !join [ !env HOME, /.ssh/id_rsa]
+                installer:
+                    type: opm
+                EOF
+
+
+                pushd khaleesi
+
+                # install ksgen
+                pushd tools/ksgen/
+                python setup.py develop
+                popd
+
+                ksgen --config-dir=$CONFIG_BASE/settings generate \
+                      --provisioner=centosci \
+                      --provisioner-site=default \
+                      --provisioner-site-user=openstack-puppet \
+                      --provisioner-distro=centos \
+                      --provisioner-distro-version=7 \
+                      --distro=centos-7.0 \
+                      --installer=opm \
+                      --installer-topology=aio \
+                      --job=opm \
+                      --product=rdo \
+                      --product-version=kilo \
+                      --product-version-repo=delorean \
+                      --extra-vars @projects-vars.yaml \
+                      --extra-vars local_spec_dir=$WORKSPACE/ci-scripts/specs/ \
+                      --extra-vars spec_dir=/root/rpmbuild/SPECS \
+                      --extra-vars sources_dir=/root/rpmbuild/SOURCES \
+                      --extra-vars workspace=$WORKSPACE \
+                     ksgen_settings.yml
+
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/package.yml
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
+
+
+- job:
+    name: opm-ci-midstream-patches-newpatch
+    scm:
+        - replica-project
+        - gate-scripts
+    trigger:
+        - replica-gerrit-patches-create-event
+    builders:
+        - shell: |
+            python ci-scripts/scripts/event-patches-patchset.py
+
+- job:
+    name: opm-ci-midstream-recombination-tests
+    scm:
+        - replica-project
+        - gate-scripts
+        - khaleesi
+        - khaleesi-settings
+    trigger:
+        - replica-gerrit-recombination-create-event
+    builders:
+        - shining-panda:
+            build-environment: virtualenv
+            command: |
+                #pip install -U ansible; ansible --version
+                pip install markupsafe
+
+                source khaleesi-settings/jenkins/ansible_settings.sh
+                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
+                export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
+                export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
+                export ANSIBLE_LOG_PATH=/tmp/ansible.log
+                export KHALEESI_VERBOSE=true
+                source $WORKSPACE/../../private-exports
+
+                # generate extra project vars
+                python ci-scripts/scripts/generate-project-vars.py ci-scripts/scripts/projects.yaml
+                cp project-vars.yaml khaleesi
+
+                cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
+                provisioner:
+                    remote_user: root
+                    key_file: !join [ !env HOME, /.ssh/id_rsa]
+                installer:
+                    type: opm
+                EOF
+
+
+                pushd khaleesi
+
+                # install ksgen
+                pushd tools/ksgen/
+                python setup.py develop
+                popd
+
+                ksgen --config-dir=$CONFIG_BASE/settings generate \
+                      --provisioner=centosci \
+                      --provisioner-site=default \
+                      --provisioner-site-user=openstack-puppet \
+                      --provisioner-distro=centos \
+                      --provisioner-distro-version=7 \
+                      --distro=centos-7.0 \
+                      --installer=opm \
+                      --installer-topology=aio \
+                      --job=opm \
+                      --product=rdo \
+                      --product-version=kilo \
+                      --product-version-repo=delorean \
+                      --extra-vars @project-vars.yaml \
+                      ksgen_settings.yml
+
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/main.yml || true
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml 
+
+- job:
+    name: opm-ci-midstream-upstream-recombination-verified
+    scm:
+        - replica-project
+        - gate-scripts
+    trigger:
+        - replica-gerrit-original-recombination-vote-event
+    builders:
+        - shell: |
+            python ci-scripts/scripts/event-replica-recombination-verified.py
+
+- job:
+    name: opm-ci-midstream-upstream-patches-verified
+    scm:
+        - replica-project
+        - gate-scripts
+    trigger:
+        - replica-gerrit-patches-recombination-vote-event
+    builders:
+        - shell: |
+            python ci-scripts/scripts/event-patches-recombination-verified.py
+
+
+
+

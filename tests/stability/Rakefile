@@ -1,0 +1,30 @@
+
+require 'rake'
+require 'rspec/core/rake_task'
+require 'rspec/core'
+require 'rspec/matchers'
+
+task :spec    => 'spec:all'
+task :default => :spec
+
+namespace :spec do
+  test_sets = []
+  Dir.glob('./*').each do |dir|
+    next unless File.directory?(dir)
+    set_name = File.basename(dir)
+    next unless set_name != 'addons'
+    test_sets << File.basename(set_name)
+  end
+
+  task :all     => test_sets
+  task :default => :all
+
+  test_sets.each do |set_name|
+    desc "Run #{set_name} serverspec tests"
+    RSpec::Core::RakeTask.new(set_name.to_sym) do |t|
+      # we will always run tests in local environment
+      ENV['TARGET_HOST'] = 'localhost'
+      t.pattern = "#{set_name}/*_spec.rb"
+    end
+  end
+end
