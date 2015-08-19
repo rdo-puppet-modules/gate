@@ -79,10 +79,10 @@
             trigger-on:
                 - change-merged-event
             projects:
-                - project-compare-type: 'PATH'
+                - project-compare-type: 'ANT'
                   project-pattern: openstack/puppet-*
                   branches:
-                      - branch-compare-type: 'PLAIN'
+                      - branch-compare-type: 'ANT'
                         branch-pattern: 'master'
                   skip-vote:
                       successful: true
@@ -94,15 +94,15 @@
     name: replica-gerrit-recombination-merge-event
     triggers:
         - gerrit:
-            server-name: Gerrithub-nonvoting_rdo-ci-service
+            server-name: 'Gerrithub-nonvoting'
             silent: true
             trigger-on:
                 - change-merged-event
             projects:
-                - project-compare-type: 'PATH'
-                  project-pattern: rdo-puppet-modules/puppet-*
+                - project-compare-type: 'ANT'
+                  project-pattern: 'rdo-puppet-modules/puppet-*'
                   branches:
-                      - branch-compare-type: 'PLAIN'
+                      - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-*'
                   skip-vote:
                       successful: true
@@ -122,10 +122,10 @@
                     exclude-trivial-rebase: false
                     exclude-no-code-change: true
             projects:
-                - project-compare-type: 'PATH'
+                - project-compare-type: 'ANT'
                   project-pattern: rdo-puppet-modules/puppet-*
                   branches:
-                      - branch-compare-type: 'PLAIN'
+                      - branch-compare-type: 'ANT'
                         branch-pattern: '*-patches'
                   skip-vote:
                       successful: true
@@ -145,10 +145,10 @@
                     exclude-trivial-rebase: false
                     exclude-no-code-change: true
             projects:
-                - project-compare-type: 'PATH'
+                - project-compare-type: 'ANT'
                   project-pattern: rdo-puppet-modules/puppet-*
                   branches:
-                      - branch-compare-type: 'PLAIN'
+                      - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-*'
                   skip-vote:
                       successful: true
@@ -170,10 +170,10 @@
                     approval-category: 'Verified'
                     approval-value: 1
             projects:
-                - project-compare-type: 'PATH'
+                - project-compare-type: 'ANT'
                   project-pattern: rdo-puppet-modules/puppet-*
                   branches:
-                      - branch-compare-type: 'PLAIN'
+                      - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-original-*'
                   skip-vote:
                       successful: true
@@ -195,10 +195,10 @@
                     approval-category: 'Verified'
                     approval-value: 1
             projects:
-                - project-compare-type: 'PATH'
+                - project-compare-type: 'ANT'
                   project-pattern: rdo-puppet-modules/puppet-*
                   branches:
-                      - branch-compare-type: 'PLAIN'
+                      - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-patches-*'
                   skip-vote:
                       successful: true

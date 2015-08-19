@@ -14,7 +14,7 @@
     scm:
         - original-project
         - opm-gate
-    trigger:
+    triggers:
         - upstream-gerrit-merge-event
     builders:
         - shell: |
@@ -36,7 +36,7 @@
         - opm-gate
         - khaleesi
         - khaleesi-settings
-    trigger:
+    triggers:
         - replica-gerrit-recombination-merge-event
     builders:
         - shining-panda:
@@ -102,7 +102,7 @@
     scm:
         - replica-project
         - opm-gate
-    trigger:
+    triggers:
         - replica-gerrit-patches-create-event
     builders:
         - shell: |
@@ -115,7 +115,7 @@
         - opm-gate
         - khaleesi
         - khaleesi-settings
-    trigger:
+    triggers:
         - replica-gerrit-recombination-create-event
     builders:
         - shining-panda:
@@ -189,7 +189,7 @@
     scm:
         - replica-project
         - opm-gate
-    trigger:
+    triggers:
         - replica-gerrit-patches-recombination-vote-event
     builders:
         - shell: |
