@@ -11,7 +11,8 @@ import tempfile
 from contextlib import contextmanager
 from collections import OrderedDict
 
-# TODO: ADD COLORS to output!!!
+import colorlog
+log = colorlog.get()
 
 @contextmanager
 def pushd(newDir):
@@ -21,27 +22,30 @@ def pushd(newDir):
     os.chdir(previousDir)
 
 
-def cmd(args, show_stdout=True, show_stderr=True):
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+def shell(commandline, show_stdout=True, show_stderr=True):
+    process = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     process.output, process.errors = process.communicate()
     process.output = process.output.split('\n')
     process.errors = process.errors.split('\n')
-    #if process.returncode != 0:
-    print "---- command"
-    print "executing: %s" % args
-    print "stdout:"
+    if process.returncode == 0:
+        outlog = log.success
+    else:
+        outlog = log.error
+    log.info("---- executing command: %s" % commandline)
+    log.info("---- stdout:")
     if show_stdout:
         for line in process.output:
-            print line,
+            outlog(line)
     else:
-        print "*** Suppressed"
-    print "stderr:"
+        outlog("*** Suppressed")
+    log.info("---- stderr:")
     if show_stderr:
         for line in process.errors:
-            print line,
+            outlog(line)
     else:
-        print "*** Suppressed"
-    print "------"
+        outlog("*** Suppressed")
+    log.info("---- end command")
+    # remove blank lines from output for further processing
     while '' in process.output:
         process.output.remove('')
     while '' in process.errors:
@@ -59,37 +63,37 @@ class Gerrit(object):
 
     def query_changes_json(self, query):
         changes_infos = list()
-        exe = cmd('ssh %s gerrit query --current-patch-set --format json %s' % (self.host,query))
-        pprint.pprint(exe.output)
-        for change_json in exe.output:
+        cmd = shell('ssh %s gerrit query --current-patch-set --format json %s' % (self.host,query))
+        log.debug(pprint.pformat(cmd.output))
+        for change_json in cmd.output:
             if change_json !='':
                 change = json.loads(change_json)
                 if "type" not in change or change['type'] != 'stats':
                     changes_infos.append(change)
 
-        print "end query json"
+        log.debug("end query json")
         return changes_infos
 
     def approve_change(self, number, patchset):
-        cmd('ssh %s gerrit review --code-review 2 --verified 1 %s,%s' % (self.host, number, patchset))
+        shell('ssh %s gerrit review --code-review 2 --verified 1 %s,%s' % (self.host, number, patchset))
 
     def submit_change(self, number, patchset):
-        cmd('ssh %s gerrit review --publish --project %s %s,%s' % (self.host, self.project_name, number, patchset))
-        cmd('ssh %s gerrit review --submit --project %s %s,%s' % (self.host, self.project_name, number, patchset))
-        exe = cmd('ssh %s gerrit query --format json "change:%s AND status:merged"' % (self.host, number))
-        if exe.output[:-1]:
+        shell('ssh %s gerrit review --publish --project %s %s,%s' % (self.host, self.project_name, number, patchset))
+        shell('ssh %s gerrit review --submit --project %s %s,%s' % (self.host, self.project_name, number, patchset))
+        cmd = shell('ssh %s gerrit query --format json "change:%s AND status:merged"' % (self.host, number))
+        if cmd.output[:-1]:
             return True
         return False
 
     def upload_change(self, branch, topic):
-        cmd('git checkout %s' % branch)
-        cmd('git review -D -r %s -t "%s" %s' % (self.name, topic, branch))
-        exe = cmd('ssh %s gerrit query --current-patch-set --format json "topic:%s AND status:open"' % (self.host, topic))
-        cmd('git checkout parking')
-        pprint.pprint(exe.output)
-        if not exe.output[:-1]:
+        shell('git checkout %s' % branch)
+        shell('git review -D -r %s -t "%s" %s' % (self.name, topic, branch))
+        cmd = shell('ssh %s gerrit query --current-patch-set --format json "topic:%s AND status:open"' % (self.host, topic))
+        shell('git checkout parking')
+        log.debug(pprint.pformat(cmd.output))
+        if not cmd.output[:-1]:
             return None
-        gerrit_infos = json.loads(exe.output[:-1][0])
+        gerrit_infos = json.loads(cmd.output[:-1][0])
         infos = self.normalize_infos(gerrit_infos)
         change = Change(infos=infos)
         return change
@@ -101,7 +105,7 @@ class Gerrit(object):
         query_string = query_string + "\) AND project:%s AND NOT status:abandoned" % (self.project_name)
         if branch:
             query_string = query_string + " AND branch:%s " % branch
-        print "search in upstream gerrit: %s" % query_string
+        log.debug("search in upstream gerrit: %s" % query_string)
         return query_string
 
     @staticmethod
@@ -118,10 +122,10 @@ class Gerrit(object):
                     code_review = max(code_review, int(patchset_approval['value']))
                 if patchset_approval['type'] == 'Verified':
                     verified = max(verified, int(patchset_approval['value']))
-        print "change %s max approvals: CR: %d, V: %d" % (infos['id'], code_review, verified)
+        log.debug("change %s max approvals: CR: %d, V: %d" % (infos['id'], code_review, verified))
         if code_review >= 2 and verified >= 1:
-            print "... approved for submission if all precedent are approved too"
-            return True
+           log.debug("change %s approved for submission if all precedent are approved too")
+           return True
         return False
 
     def normalize_infos(self, gerrit_infos):
@@ -184,24 +188,24 @@ class Gerrit(object):
 class Git(object):
 
     def get_revision(self, revision_name):
-        exe = cmd('git rev-parse %s' % revision_name)
-        revision = exe.output[0].rstrip('\n')
+        cmd = shell('git rev-parse %s' % revision_name)
+        revision = cmd.output[0].rstrip('\n')
         return revision
 
     def get_commits(self, branch, revision_start, revision_end):
-        print "Interval: %s..%s" % (revision_start, revision_end)
+        log.debug("Interval: %s..%s" % (revision_start, revision_end))
 
         os.chdir(self.directory)
-        exe = cmd('git checkout parking')
-        exe = cmd('git log --topo-order --reverse --pretty=raw %s..%s --no-merges' % (revision_start, revision_end))
+        shell('git checkout parking')
+        cmd = shell('git log --topo-order --reverse --pretty=raw %s..%s --no-merges' % (revision_start, revision_end))
 
-        return exe.output
+        return cmd.output
 
     def get_merge_commits(self, revision_start, revision_end):
         merge_commits = []
-        exe = cmd('git log --topo-order --reverse --pretty=format:"%%H %%P" %s..%s --merges' % (revision_start, revision_end))
-        for line in map(lambda line: line.rstrip('\n'), exe.output):
-            merge= {}
+        cmd = shell('git log --topo-order --reverse --pretty=format:"%%H %%P" %s..%s --merges' % (revision_start, revision_end))
+        for line in map(lambda line: line.rstrip('\n'), cmd.output):
+            merge = {}
             merge['commit'] = line.split(' ')[0]
             merge['parents'] = line.split(' ')[1:]
             merge_commits.append(merge)
@@ -212,14 +216,12 @@ class Git(object):
         changes = dict()
         for revision in search_values:
             infos = {}
-            exe = cmd('git show -s --pretty=format:"%%H %%P" %s' % (revision))
-            infos['id'], infos['parent'] = exe.output[0].split(' ')[0:2]
+            cmd = shell('git show -s --pretty=format:"%%H %%P" %s' % (revision))
+            infos['id'], infos['parent'] = cmd.output[0].split(' ')[0:2]
             infos['revision'] = infos['id']
             if not branch:
-                print "for git repositories you must specify a branch"
+                log.error("for git repositories you must specify a branch")
                 sys.exit(1)
-                exe = cmd("git branch -r --contains %s" % revision)
-                infos['branch'] = exe.output[0].rstrip().lstrip().split('/')[1]
             else:
                 infos['branch'] = branch
             infos['project-name'] = self.project_name
@@ -235,17 +237,15 @@ class LocalRepo(Git):
         self.project_name = project_name
         self.remotes = {}
         os.chdir(self.directory)
-        cmd('git init')
-        cmd('git checkout --orphan parking')
-        cmd('git commit -a -m "parking"')
-        cmd('scp -p gerrithub:hooks/commit-msg .git/hooks/')
-    # git rev-parse --abbrev-ref HEAD
-    # TODO: create a parking branch to return after every operation
+        shell('git init')
+        shell('git checkout --orphan parking')
+        shell('git commit -a -m "parking"')
+        shell('scp -p gerrithub:hooks/commit-msg .git/hooks/')
 
     def addremote(self, name, url):
         os.chdir(self.directory)
-        cmd('git remote add %s %s' % (name, url))
-        cmd('git fetch %s' % name)
+        shell('git remote add %s %s' % (name, url))
+        shell('git fetch %s' % name)
 
     def add_gerrit_remote(self, name, location, project_name):
         self.remotes[name] = Gerrit(name, location, project_name)
@@ -256,93 +256,94 @@ class LocalRepo(Git):
         self.addremote(name, self.remotes[name].url)
 
     def track_branch(self, branch, remote_branch):
-        cmd('git checkout parking')
-        cmd('git branch --track %s %s' %(branch, remote_branch))
+        shell('git checkout parking')
+        shell('git branch --track %s %s' %(branch, remote_branch))
 
     def delete_branch(self, branch):
-        cmd('git checkout parking')
-        cmd('git branch -D %s' % branch)
+        shell('git checkout parking')
+        shell('git branch -D %s' % branch)
 
     def recombine(self, commit_message_filename, pick_branch, recombination_branch, starting_revision, pick_revision, merge_revision):
-        cmd('git fetch replica')
-        cmd('git fetch original')
+        shell('git fetch replica')
+        shell('git fetch original')
         retry_merge = True
         first_try = True
         while retry_merge:
-            exe = cmd('git checkout %s' % pick_branch)
+            shell('git checkout %s' % pick_branch)
 
-            cmd('git checkout -B %s %s' % (recombination_branch, starting_revision))
+            shell('git checkout -B %s %s' % (recombination_branch, starting_revision))
 
             # TODO: handle exception: two identical changes in row creates no
             # diff, so no commit can be created
-            print "Creating remote disposable branch on "
-            cmd('git push replica HEAD:%s' % recombination_branch)
+            log.info("Creating remote disposable branch on replica")
+            shell('git push replica HEAD:%s' % recombination_branch)
 
-            exe = cmd("git merge --squash --no-commit %s %s" % (pick_revision, merge_revision))
+            cmd = shell("git merge --squash --no-commit %s %s" % (pick_revision, merge_revision))
 
-            cmd('git status')
+            shell('git status')
 
-            if exe.returncode != 0:
-                print "Merge check with master-patches failed"
+            if cmd.returncode != 0:
+                log.warning("Merge check with master-patches failed")
                 resolution = False
                 if first_try:
-                    print "Trying automatic resolution"
-                    resolution = self.resolve_conflicts(exe.output)
+                    log.warning("Trying automatic resolution")
+                    resolution = self.resolve_conflicts(cmd.output)
                     first_try = False
                     if not resolution:
-                        cmd('git push replica :%s' % recombination_branch)
-                        print "Resolution failed. Exiting"
+                        shell('git push replica :%s' % recombination_branch)
+                        log.error("Resolution failed. Exiting")
                         os.unlink(commit_message_filename)
                         sys.exit(1)
                     else:
                         # reset, resolve, and retry
-                        cmd('git reset --hard %s' % recombination_branch)
-                        cmd('git checkout %s' % pick_branch)
-                        cmd('git branch -D %s' % recombination_branch)
-                        cmd('git push replica :%s' % recombination_branch)
+                        shell('git reset --hard %s' % recombination_branch)
+                        shell('git checkout %s' % pick_branch)
+                        shell('git branch -D %s' % recombination_branch)
+                        shell('git push replica :%s' % recombination_branch)
                 else:
-                    cmd('git push replica :%s' % recombination_branch)
+                    shell('git push replica :%s' % recombination_branch)
                     os.unlink(commit_message_filename)
-                    print "Merge failed even after resolution. You're on your own, sorry. Exiting"
+                    log.critical("Merge failed even after resolution. You're on your own, sorry. Exiting")
                     sys.exit(1)
             else:
                 retry_merge = False
-        exe = cmd("git commit -F %s" % (commit_message_filename))
+
+        shell("git commit -F %s" % (commit_message_filename))
         os.unlink(commit_message_filename)
-        cmd('git checkout %s' % pick_branch)
+        shell('git checkout %s' % pick_branch)
 
     def sync_replica(self, branch, commit):
         os.chdir(self.directory)
-        cmd('git fetch replica')
-        cmd('git branch --track replica-%s remotes/replica/%s' % (branch, branch))
-        cmd('git checkout replica-%s' % branch)
-        exe = cmd('git merge --ff-only %s' % commit)
-        if exe.returncode != 0:
-            print exe.output
-            print "Error merging. Exiting"
+        shell('git fetch replica')
+        shell('git branch --track replica-%s remotes/replica/%s' % (branch, branch))
+        shell('git checkout replica-%s' % branch)
+        cmd = shell('git merge --ff-only %s' % commit)
+        if cmd.returncode != 0:
+            log.debug(cmd.output)
+            log.critical("Error merging. Exiting")
             sys.exit(1)
-        exe = cmd('git push replica HEAD:%s' % branch)
-        if exe.returncode != 0:
-            print exe.output
-            print "Error pushing the merge. Exiting"
+        cmd = shell('git push replica HEAD:%s' % branch)
+        if cmd.returncode != 0:
+            log.debug(cmd.output)
+            log.critical("Error pushing the merge. Exiting")
             sys.exit(1)
-        cmd('git checkout parking')
-        cmd('git branch -D replica-%s' % branch)
+        shell('git checkout parking')
+        shell('git branch -D replica-%s' % branch)
 
     def push_merge(self, recombination_attempt):
         # FIXME: checkout from merge commit if it exists, not the simple commit
         branch, starting_revision, merge_revision = recombination_attempt
-        cmd('git fetch replica')
-        cmd('git branch --track replica-%s remotes/replica/%s' % (branch, branch))
-        cmd('git checkout replica-%s' % branch)
-        cmd('git checkout -B %s-tag %s' % (branch, starting_revision))
-        cmd("git merge %s" % (merge_revision))
+        shell('git fetch replica')
+        shell('git branch --track replica-%s remotes/replica/%s' % (branch, branch))
+        shell('git checkout replica-%s' % branch)
+        shell('git checkout -B %s-tag %s' % (branch, starting_revision))
+        shell("git merge %s" % (merge_revision))
 
-        cmd('git push -f replica HEAD:%s-tag' % (branch))
+        shell('git push -f replica HEAD:%s-tag' % (branch))
 
-        cmd('git checkout parking')
-        cmd('git branch -D %s-tag' % branch)
-        cmd('git branch -D replica-%s' % branch)
+        shell('git checkout parking')
+        shell('git branch -D %s-tag' % branch)
+        shell('git branch -D replica-%s' % branch)
 
     def resolve_conflicts(self, output):
         return True
@@ -407,7 +408,7 @@ class Change(object):
         # committing the merge commit
         for merge_commit in merge_commits:
             if self.revision in merge_commit['parents'][1]:
-                print "%s is part of merge commit %s" % (self.revision, merge_commit['commit'])
+                log.info("%s is part of merge commit %s" % (self.revision, merge_commit['commit']))
                 self.previous_commit = merge_commit['parents'][0]
                 self.merge_commit = merge_commit['commit']
                 break
@@ -423,9 +424,9 @@ class Change(object):
         if result_change:
             self.number = result_change.number
             self.uuid = result_change.uuid
-            print "Recombination with Change-Id %s uploaded in replica gerrit with number %s" % (self.uuid, self.number)
+            log.info("Recombination with Change-Id %s uploaded in replica gerrit with number %s" % (self.uuid, self.number))
         else:
-            cmd('git push replica :%s' % self.branch)
+            shell('git push replica :%s' % self.branch)
             return False
 
         return True
@@ -449,11 +450,11 @@ class Recombination(Change):
             self.replica = Change(repo=self.project.replica)
 
     def decode_subject(self):
-        print self.subject
+        log.debug(self.subject)
         try:
             data = yaml.load(self.subject)
         except ValueError:
-            print "Subject not in yaml"
+            log.error("Subject not in yaml")
             exit(1)
         recomb_data = data['recombination']
         if 'mutation' in recomb_data:
@@ -485,7 +486,7 @@ class Recombination(Change):
             main_source = self.replica
             patches_source = self.patches
         else:
-            print "I don't know how to attempt this recombination"
+            log.critical("I don't know how to attempt this recombination")
             sys.exit(1)
         pick_revision = main_source.revision
         pick_branch = main_source.branch
@@ -493,7 +494,7 @@ class Recombination(Change):
         merge_revision = patches_source.revision
         merge_branch = patches_source.branch
         recombination_branch = self.branch
-        print "Checking compatibility between %s and %s-patches" % (self.original.branch, self.original.branch)
+        log.info("Checking compatibility between %s and %s-patches" % (self.original.branch, self.original.branch))
         subject = {
             "target-branch": self.original.branch,
             "recombination": {
@@ -527,14 +528,14 @@ class Recombination(Change):
             commit = self.original.merge_commit
         else:
             commit = self.original.revision
-        print "Advancing replica branch %s to %s " % (self.original.branch, commit)
+        log.info("Advancing replica branch %s to %s " % (self.original.branch, commit))
         self.project.underlayer.sync_replica(self.original.branch, commit)
 
 class Project(object):
 
     def __init__(self, project_name, project_info, local_dir):
 
-        pprint.pprint(project_info)
+        log.info('Current project:\n' + pprint.pformat(project_info))
         self.original_project = project_info['original']
         self.replica_project = project_info['replica']
         self.deploy_name = project_info['deploy-name']
@@ -603,18 +604,15 @@ class Project(object):
 
         if recombinations:
             ids = list(recombinations)
-            print "ids"
-            pprint.pprint(ids)
+            log.debugvar("ids")
 
             self.commits['merge_commits'] = self.underlayer.get_merge_commits(revision_start, revision_end)
             merge_commits = self.commits['merge_commits']
 
-            print "merge commits list"
-            pprint.pprint(merge_commits)
+            log.debugvar('merge_commits')
             # Just sets the right order
             for recomb_id in ids:
                 recombinations[recomb_id] = None
-
 
             original_changes = self.original.get_changes_by_id(ids, branch=branch)
             replicas_infos = self.replica.get_changes_info(ids, search_field='topic', key_field='topic')
@@ -644,8 +642,9 @@ class Project(object):
                 recombinations[recomb_id].patches = patches_change
 
             for recomb_id in ids:
-                print recomb_id
-                pprint.pprint(recombinations[recomb_id].__dict__)
+                log.debugvar('recomb_id')
+                recomb = recombinations[recomb_id].__dict__
+                log.debugvar('recomb')
 
         return recombinations
 
@@ -666,7 +665,7 @@ class Polymerase(object):
         try:
             project_info = projects[project_name]
         except KeyError:
-            print "project %s not found. Add to project file or filter events." % project_name
+            log.critical("project %s not found. Add to project file or filter events." % project_name)
             exit(1)
         self.project = Project(project_name, project_info, local_dir)
 
@@ -685,7 +684,7 @@ class Polymerase(object):
         for index, recomb_id in enumerate(list(recombinations)):
             replica_change = recombinations[recomb_id]
 
-            print "evaluating recombination with id: %s" % recomb_id
+            log.info("evaluating slices for recombination with id: %s" % recomb_id)
 
             # creates slices to apply to change list
             # every status may have multiple slices, but this situation is tolerated
@@ -694,7 +693,7 @@ class Polymerase(object):
             status = replica_change.status
             impact =  self.status_impact[status]
             previous_change_id = None
-            print impact, status, recomb_id
+            log.debug("impact: %s, status: %s, recomb_id: %s" % (impact, status, recomb_id))
             # Handle current status slice, archive previous slice
             try:
                 segment = current_slice[status]
@@ -706,18 +705,20 @@ class Polymerase(object):
                 segment = current_slice[status]
                 segment['start'] = index
                 segment['end'] = index + 1
-                print "slices new set: %s from %d to %d" % (status, index, index + 1)
+                log.debug("slices new set: %s from %d to %d" % (status, index, index + 1))
             # init/extend current slice
             if previous_status:
-                print "previous impact: %s" % previous_impact
-                print "previous status: %s" % previous_status
+                log.debug("previous impact: %s" % previous_impact)
+                log.debug("previous status: %s" % previous_status)
                 if impact > previous_impact:
-                    pprint.pprint(list(recombinations))
-                    print "Constraint violation error: status %s at index %d (change:%s) of changes list in interval is more advanced than previous status %s at index %d (change: %s)" % (status, index, recomb_id, previous_status, index-1, previous_change_id)
-                    # the execution should stop here
+                    list_recomb = list(recombinations)
+                    log.debugvar('list_recomb')
+                    log.critical("Constraint violation error: status %s at index %d (change:%s) of changes list in interval is more advanced than previous status %s at index %d (change: %s)" % (status, index, recomb_id, previous_status, index-1, previous_change_id))
+                    log.critical("This means that midstream is broken")
+                    sys.exit(1)
                 if status == previous_status:
                     segment['end'] = segment['end'] + 1
-                    print "same status '%s' at index %d" % (status, index)
+                    log.debug("same status '%s' at index %d" % (status, index))
             # end of status list
             if index == len(list(recombinations)) - 1:
                     slices[status].append(copy.deepcopy(current_slice[status]))
@@ -732,19 +733,20 @@ class Polymerase(object):
     def test_recombination(self, recomb_id, main_source, patches_source):
         recombination = self.recombinations[recomb_id]
         recombination.attempt(main_source, patches_source)
-        print "Merge check with master-patches successful, ready to create review"
+        log.info("Merge check with master-patches successful, ready to create review")
         if not recombination.upload():
-            print "upload of recombination with change %s did not succeed. Exiting" % recomb_id
+            log.error("upload of recombination with change %s did not succeed. Exiting" % recomb_id)
             sys.exit(1)
 
     def submit_recombination(self, recomb_id):
         recombination = self.recombinations[recomb_id]
-        pprint.pprint(recombination.__dict__)
-        print "Approved replica recombination %s is about to be submitted for merge" % recombination.number
+        recomb = recombination.__dict__
+        log.debugvar('recomb')
+        log.infoi("Approved replica recombination %s is about to be submitted for merge" % recombination.number)
         if recombination.submit():
-            print "Submission of recombination %s succeeded" % recombination.number
+            log.success("Submission of recombination %s succeeded" % recombination.number)
         else:
-            print "Submission of recombination %s failed" % recombination.number
+            log.error("Submission of recombination %s failed" % recombination.number)
             sys.exit(1)
         recombination.generate_tag_branch()
 
@@ -752,7 +754,7 @@ class Polymerase(object):
 
         slices = self.get_slices(self.recombinations)
 
-        pprint.pprint(slices)
+        log.debugvar('slices')
         # Master sync on merged changes
         # we really need only the last commit in the slice
         # we advance the master to that, and all the others will be merged too
@@ -761,7 +763,7 @@ class Polymerase(object):
             # master is out of sync, changes need to be pushed
             # but check first if the change was changed with a merge commit
             # if yes, push THAT to master, if not, it's just a fast forward
-            print "master out of sync"
+            log.warning("branch is out of sync with original")
             segment = slices['MERGED'][0]
             recomb_id = list(self.recombinations)[segment['end'] - 1]
             recombination = self.recombinations[recomb_id]
@@ -778,7 +780,7 @@ class Polymerase(object):
         for index in list(skip_list)[::-1]:
             segment = slices['APPROVED'].pop(index)
             for recomb_id in list(self.recombinations)[segment['start']:segment['end']]:
-                print "Change %s is approved but waiting for previous unapproved changes, skipping" % recomb_id
+                log.warning("Change %s is approved but waiting for previous unapproved changes, skipping" % recomb_id)
 
         # Merge what remains
         for segment in slices['APPROVED']:
@@ -790,22 +792,23 @@ class Polymerase(object):
         for segment in slices['PRESENT']:
             for recomb_id in list(self.recombinations)[segment['start']:segment['end']]:
                 recombination = self.recombinations[recomb_id]
-                print "Change %s already present in midstream gerrit as change %s and waiting for approval" % (recomb_id, recombination.number)
+                log.warning("Change %s already present in midstream gerrit as change %s and waiting for approval" % (recomb_id, recombination.number))
 
         # Gerrit operations for missing changes
         for segment in slices['MISSING']:
             for recomb_id in list(self.recombinations)[segment['start']:segment['end']]:
-                print "Change %s is missing from midstream gerrit" % recomb_id
+                log.warning("Change %s is missing from midstream gerrit" % recomb_id)
                 self.test_recombination(recomb_id, 'original', 'diversity')
 
 
     def original_scan_branches(self, branches=None):
         if not branches:
+            log.warning("no branches specified")
             try:
                 branches = self.project.original_project['watch-branches']
-                print "using defined watch branches"
+                log.warning("using defined watch branches")
             except KeyError:
-                print "no branches specified"
+                log.error("no branches specified")
                 exit(1)
 
         for branch in branches:
@@ -829,21 +832,21 @@ class Polymerase(object):
         self.recombinations = self.project.interval(recombination.original.branch, revision_start, revision_end)
         self.scan_original_distance()
 
-    # gitnome = Polymerase(projects, project_dir, project_full_name, patch_branch=branch)
-    # gitnome.event_patches_patchset(change_id)
     def event_patches_patchset(self, patches_change_id):
         self.recombinations = self.project.recombine_from_patches(patches_change_id)
-        pprint.pprint(self.recombinations[patches_change_id].__dict__)
-        pprint.pprint(self.recombinations[patches_change_id].original.__dict__)
-        pprint.pprint(self.recombinations[patches_change_id].replica.__dict__)
-        pprint.pprint(self.recombinations[patches_change_id].patches.__dict__)
+        change = self.recombinations[patches_change_id].__dict__
+        orig_change = self.recombinations[patches_change_id].original.__dict__
+        repl_change = self.recombinations[patches_change_id].replica.__dict__
+        patch_change = self.recombinations[patches_change_id].patches.__dict__
+        log.debugvar('change')
+        log.debugvar('orig_change')
+        log.debugvar('repl_change')
+        log.debugvar('patch_change')
         if self.recombinations[patches_change_id].status == "MISSING":
             self.test_recombination(patches_change_id, 'replica', 'mutation')
         else:
-            print "Master patches recombination present as number %s and waiting for approval" % self.recombinations[patches_change_id].number
+            log.warning("Master patches recombination present as number %s and waiting for approval" % self.recombinations[patches_change_id].number)
 
-    # gitnome = Polymerase(projects, project_dir, project_full_name, patches_branches=[branch])
-    # gitnome.event_patches_patchset(change_id)
     def event_patches_recombine_verified(self):
         pass
 
@@ -855,12 +858,12 @@ class Polymerase(object):
         if self.recombinations[recombination_id].patches.status != "MERGED":
             self.recombinations[recombination_id].patches.approve()
             if not self.recombinations[recombination_id].patches.submit():
-                print "Originating change submission failed"
+                log.error("Originating change submission failed")
                 sys.exit(1)
         if self.recombinations[recombination_id].status != "MERGED":
             self.submit_recombination(recombination_id)
         else:
-            print "Recombination already submitted"
+            log.warning("Recombination already submitted")
         # update existing recombination from upstream changes
         # for change in midstream_gerrit.gather_current_merges(patches_revision):
         #    local_repo.merge_fortests(change['upstream_revision'], patches_revision)
