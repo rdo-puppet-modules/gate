@@ -1,24 +1,155 @@
 ---
 - job:
-    name: opm-ci-upstream-poll-projects
+    name: opm-ci-upstream-changes
     scm:
+        - gitnetics
         - opm-gate
     triggers:
         - daily-once
-    builders:
-        - shell: |
-            python gate/scripts/poll-upstream-projects.py
-
-- job:
-    name: opm-ci-upstream-merge-event
-    scm:
-        - original-project
-        - opm-gate
-    triggers:
         - upstream-gerrit-merge-event
     builders:
         - shell: |
-            python gate/scripts/event-upstream-merge.py
+            PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
+            PROJECTS_DIR="$WORKSPACEprojects"
+            mkdir -p $PROJECTS_DIR
+
+            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
+            if [ -n "$GERRIT_PROJECT" ]; then
+                # triggered by gerrit event
+                $base_command --projects $GERRIT_PROJECT --branches $GERRIT_BRANCH poll-original
+            else
+                # triggered by timer
+                $base_command poll-original
+            fi
+
+- job:
+    name: opm-ci-midstream-patches-newpatch
+    scm:
+        - gitnetics
+        - opm-gate
+    triggers:
+        - replica-gerrit-patches-create-event
+        - daily-once
+    builders:
+        - shell: |
+            mkdir -p $PROJECTS_DIR
+            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
+            if [ -n "$GERRIT_PROJECT" ]; then
+                # triggered by gerrit event
+                $base_command --projects $GERRIT_PROJECT --change-id $GERRIT_CHANGE poll-replica
+            else
+                # triggered by timer
+                $base_command poll-replica
+            fi
+
+- job:
+    name: opm-ci-midstream-recombination-tests
+    scm:
+        - gitnetics
+        - opm-gate
+        - khaleesi
+        - khaleesi-settings
+    triggers:
+        - replica-gerrit-recombination-create-event
+        - daily-once
+    builders:
+        - shining-panda:
+            system-site-packages: true
+            python-version: system-CPython-2.7
+            build-environment: virtualenv
+            command: |
+                #pip install -U ansible; ansible --version
+                pip install markupsafe
+
+                source khaleesi-settings/jenkins/ansible_settings.sh
+                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
+                export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
+                export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
+                export ANSIBLE_LOG_PATH=/tmp/ansible.log
+                export KHALEESI_VERBOSE=true
+                source $WORKSPACE/../../private-exports
+
+                cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
+                provisioner:
+                    remote_user: root
+                    key_file: !join [ !env HOME, /.ssh/id_rsa]
+                installer:
+                    type: opm
+                EOF
+
+
+                pushd khaleesi
+
+                # install ksgen
+                pushd tools/ksgen/
+                python setup.py develop
+                popd
+
+                PROJECTS_CONF="$WORKSPACE/projects.yaml"
+                PROJECTS_DIR="$WORKSPACE/projects"
+                VAR_FILE="$WORKSPACE/khaleesi/project-vars.yaml"
+                UNTESTED_RECOMBINATIONS_DIR="$WORKSPACE/untested-recombinations/recombinations"
+                TESTS_INFO_DIR="$WORKSPACE/untested-recombinations/test-vars"
+
+                for dir in $UNTESTED_RECOMBINATIONS_DIR $TEST_INFO_DIR $PROJECTS_DIR; do
+                    mkdir -p $dir
+                done
+
+                base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
+                if [ -n "$GERRIT_PROJECT" ]; then
+                    # triggered by gerrit event
+                $base_command --projects $GERRIT_PROJECT download-untested-recombinations --recombination-id $GERRIT_CHANGE --var-file $VAR_FILE --tests-info-dir $TESTS_INFO_DIR --download-dir $UNTESTED_RECOMBINATIONS_DIR
+                else
+                    # triggered by timer
+                $base_command download-untested-recombinations --var-file $VAR_FILE --tests-info-dir $TESTS_INFO_DIR --download-dir $UNTESTED_RECOMBINATIONS_DIR
+                fi
+
+
+                for test_info_file in $TESTS_INFO_DIR/*; do
+                    ksgen --config-dir=$CONFIG_BASE/settings generate \
+                        --provisioner=centosci \
+                        --provisioner-site=default \
+                        --provisioner-site-user=openstack-puppet \
+                        --provisioner-distro=centos \
+                        --provisioner-distro-version=7 \
+                        --distro=centos-7.0 \
+                        --installer=opm \
+                        --installer-topology=aio \
+                        --job=opm \
+                        --product=rdo \
+                        --product-version=kilo \
+                        --product-version-repo=delorean \
+                        --extra-vars @project-vars.yaml \
+                        --extra-vars tests_dir=$WORKSPACE/gate/tests \
+                        --extra-vars @$test_info_file \
+                        ksgen_settings.yml
+
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/main.yml || true
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
+                done
+
+- job:
+    name: opm-ci-merge-recombinations
+    scm:
+        - gitnetics
+        - opm-gate
+    trigger:
+        - replica-gerrit-patches-recombination-vote-event
+        - replica-gerrit-original-recombination-vote-event
+        - daily-once
+    builders:
+        - shell: |
+            PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
+            PROJECTS_DIR="$WORKSPACEprojects"
+            mkdir -p $PROJECTS_DIR
+            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR merge-recombinations"
+            if [ -n "$GERRIT_PROJECT" ]; then
+                # triggered by gerrit event
+                $base_command --projects $GERRIT_PROJECT --recombination-id $GERRIT_CHANGE
+            else
+                # triggered by timer
+                $base_command
+            fi
 
 - job:
     name: opm-ci-repos-maintenance
@@ -28,11 +159,16 @@
         - daily-once
     builders:
         - shell: |
-            python gate/scripts/repos-maintenance.py
+            PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
+            PROJECTS_DIR="$WORKSPACEprojects"
+            mkdir -p $PROJECTS_DIR
+            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR cleanup"
+            $base_command
 
 - job:
     name: opm-ci-midstream-package
     scm:
+        - gitnetics
         - opm-gate
         - khaleesi
         - khaleesi-settings
@@ -44,8 +180,7 @@
             python-version: system-CPython-2.7
             build-environment: virtualenv
             command: |
-                python gate/scripts/generate-projects-vars.py gate/configurations/projects.yaml
-                cp projects-vars.yaml khaleesi
+                python gitnome generate-tester-vars gate/configurations/projects.yaml ../khaleesi/project-vars.yaml ../khaleesi/project.list
 
                 source khaleesi-settings/jenkins/ansible_settings.sh
                 export CONFIG_BASE=$WORKSPACE/khaleesi-settings
@@ -96,105 +231,4 @@
     publishers:
         - archive:
             artifacts: '*.rpm'
-
-- job:
-    name: opm-ci-midstream-patches-newpatch
-    scm:
-        - replica-project
-        - opm-gate
-    triggers:
-        - replica-gerrit-patches-create-event
-    builders:
-        - shell: |
-            python gate/scripts/event-patches-patchset.py
-
-- job:
-    name: opm-ci-midstream-recombination-tests
-    scm:
-        - replica-project
-        - opm-gate
-        - khaleesi
-        - khaleesi-settings
-    triggers:
-        - replica-gerrit-recombination-create-event
-    builders:
-        - shining-panda:
-            system-site-packages: true
-            python-version: system-CPython-2.7
-            build-environment: virtualenv
-            command: |
-                #pip install -U ansible; ansible --version
-                pip install markupsafe
-
-                source khaleesi-settings/jenkins/ansible_settings.sh
-                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
-                export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
-                export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
-                export ANSIBLE_LOG_PATH=/tmp/ansible.log
-                export KHALEESI_VERBOSE=true
-                source $WORKSPACE/../../private-exports
-
-                # generate extra project vars
-                python gate/scripts/generate-project-vars.py gate/configurations/projects.yaml
-                cp project-vars.yaml khaleesi
-
-                cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
-                provisioner:
-                    remote_user: root
-                    key_file: !join [ !env HOME, /.ssh/id_rsa]
-                installer:
-                    type: opm
-                EOF
-
-
-                pushd khaleesi
-
-                # install ksgen
-                pushd tools/ksgen/
-                python setup.py develop
-                popd
-
-                ksgen --config-dir=$CONFIG_BASE/settings generate \
-                      --provisioner=centosci \
-                      --provisioner-site=default \
-                      --provisioner-site-user=openstack-puppet \
-                      --provisioner-distro=centos \
-                      --provisioner-distro-version=7 \
-                      --distro=centos-7.0 \
-                      --installer=opm \
-                      --installer-topology=aio \
-                      --job=opm \
-                      --product=rdo \
-                      --product-version=kilo \
-                      --product-version-repo=delorean \
-                      --extra-vars @project-vars.yaml \
-                      ksgen_settings.yml
-
-                ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/main.yml || true
-                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml 
-
-- job:
-    name: opm-ci-midstream-upstream-recombination-verified
-    scm:
-        - replica-project
-        - opm-gate
-    trigger:
-        - replica-gerrit-original-recombination-vote-event
-    builders:
-        - shell: |
-            python gate/scripts/event-replica-recombination-verified.py
-
-- job:
-    name: opm-ci-midstream-patches-recombination-verified
-    scm:
-        - replica-project
-        - opm-gate
-    triggers:
-        - replica-gerrit-patches-recombination-vote-event
-    builders:
-        - shell: |
-            python gate/scripts/event-patches-recombination-verified.py
-
-
-
 

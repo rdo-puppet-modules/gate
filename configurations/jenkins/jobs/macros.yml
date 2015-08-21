@@ -1,6 +1,7 @@
 ---
 - defaults:
     name: global
+    disabled: true
     logrotate:
         daysToKeep: 30
         numToKeep: 50
@@ -21,17 +22,14 @@
             skip-tag: true
 
 - scm:
-    name: original-project
+    name: gitnetics
     scm:
         - git:
-            name: original
-            refspec: $GERRIT_REFSPEC
-            url: ssh://openstack-gerrit/$GERRIT_PROJECT
-            branches:
-                - $GERRIT_BRANCH
-            choosing-strategy: gerrit
-            basedir: $GERRIT_PROJECT
+            basedir: gitnetics
+            url: https://github.com/gabrielecerami/gitnetics.git
             skip-tag: true
+            branches:
+                - fixes-1
 
 - scm:
     name: khaleesi
@@ -40,7 +38,7 @@
             refspec: +refs/changes/*:refs/remotes/origin/changes/*
             url: https://github.com/redhat-openstack/khaleesi.git
             branches:
-                - changes/59/232059/96
+                - changes/59/232059/98
             basedir: khaleesi
             skip-tag: true
 
@@ -50,19 +48,6 @@
         - git:
             url: https://github.com/redhat-openstack/khaleesi-settings.git
             basedir: khaleesi-settings
-            skip-tag: true
-
-- scm:
-    name: replica-project
-    scm:
-        - git:
-            name: replica
-            refspec: $GERRIT_REFSPEC
-            url: ssh://gerrithub/$GERRIT_PROJECT
-            branches:
-                - $GERRIT_BRANCH
-            choosing-strategy: gerrit
-            basedir: $GERRIT_PROJECT
             skip-tag: true
 
 - trigger:
@@ -157,7 +142,7 @@
                       notbuilt: true
 
 - trigger:
-    name: replica-gerrit-original-recombination-vote-event
+    name: replica-gerrit-recombination-vote-event
     triggers:
         - gerrit:
             server-name: Gerrithub-nonvoting_rdo-ci-service
@@ -175,29 +160,6 @@
                   branches:
                       - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-original-*'
-                  skip-vote:
-                      successful: true
-                      failed: true
-                      unstable: true
-                      notbuilt: true
-
-- trigger:
-    name: replica-gerrit-patches-recombination-vote-event
-    triggers:
-        - gerrit:
-            server-name: Gerrithub-nonvoting_rdo-ci-service
-            silent: true
-            trigger-on:
-                - comment-added-event:
-                    approval-category: 'Code-review'
-                    approval-value: 2
-                - comment-added-event:
-                    approval-category: 'Verified'
-                    approval-value: 1
-            projects:
-                - project-compare-type: 'ANT'
-                  project-pattern: rdo-puppet-modules/puppet-*
-                  branches:
                       - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-patches-*'
                   skip-vote:
