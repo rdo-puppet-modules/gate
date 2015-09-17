@@ -1,0 +1,374 @@
+// This file is left only as reference
+// This tree is destined to be written by humans
+// but it's not graphically consumable by humans
+digraph test {
+    // use style="invis"
+
+    apache -> ceilometer [comment="included"]
+    apache -> ceph [comment="included,test_config,tests,classes"]
+    apache -> horizon [comment="included,test_config,classes"]
+    apache -> keystone [comment="test_config,included,classes"]
+    apache -> openstacklib [comment="included,classes"]
+    apache -> nagios [comment="classes"]
+
+    apt -> ceph [style = dashed]
+
+
+    certmonger -> qpid
+
+    qpid -> cinder
+    yum -> gluster [style=dashed]
+
+
+    openstacklib -> keystone
+
+    concat -> apache
+
+    // n1k_vsm has its own vswitch module
+    // openstack_extras mentions vswitch as a neutron plugin in cib configuration
+    vswitch -> neutron [comment="required"]
+    vswitch -> openstack_extras [comment="configs", style="invis"]
+
+    qpid -> nova
+
+
+    concat -> swift
+
+    xinetd -> tripleo
+    keepalived -> tripleo
+    haproxy -> tripleo
+    redis -> tripleo
+    nova -> tripleo
+    neutron -> tripleo
+
+    ceilometer -> tripleo
+    ceilometer -> swift [style=dashed, label="proxy"]
+    ceilometer -> openstack_extras [label="cib"]
+    // ceilometer is mentioned in nova tests
+    // ceilometer cli is used in nagios controls
+    ceilometer -> cinder [label="tests"]
+
+
+    // CEPH
+    // ceph is mentioned in manila configuration
+    ceph -> nova [label="storage backend"]
+    ceph -> gnocchi [label="storage backend", decorate=true]
+    ceph -> glance [label="storage backend", decorate=true]
+    ceph -> cinder [label="storage, backup backend", decorate=true]
+
+
+    // CINDER
+    // cinder is mentioned in trove configs
+    // cinder is mentioned in openstacklib comments
+    // cinder is mentioned in openstack_extras configs
+    // cinder cli is used in nagios controls
+    cinder -> tripleo
+    cinder -> nova
+    // cinder is mentioned in manila configs
+    // cinder is mentioned in horizon configs
+    // cinder is mentioned in glance configs
+
+    // COMMON
+    // no referenc of common (vardir, frag, whole) anywhere
+
+
+    // COLLECTD
+    // None
+
+    // FIREWALL
+    firewall -> gluster [comment="included,configs"]
+    firewall -> memcached [comment="classes"]
+    firewall -> neutron [comment="configs,test_config", style="invis"]
+    firewall -> pacemaker [comment="classes"]
+    firewall -> tripleo [comment="classes"]
+
+
+    // GALERA
+    // galera in mentioned in sahara package dependencies
+    galera -> tripleo
+
+    // GLANCE
+    // glance is mentioned in openstack_extras configs
+    // glance is mentioned in tripleo configs
+    // glance is mentioned in ironic configs
+    // glance is mentioned in nova configs
+
+    // GLUSTER
+    // configs: cinder (optional backend)
+    //          manila (optional backend)
+    // tests: manila (optional backend)
+
+    // GNOCCHI
+    // no mentions
+
+    // HAPROXY
+    haproxy -> neutron [comment="test_config,configs", style="invis"]
+    haproxy -> openstack_extras [comment="test_config", style="invis"]
+    haproxy -> tripleo [comment="configs", style="invis"]
+    // HEAT
+    // configs: openstack_extras (cib)
+    //          tripleo
+    //          trove
+    // tests: trove (config)
+
+    // HORIZON
+    // configs: tripleo
+
+
+    // INIFILE
+    inifile -> ceilometer [comment="provider"]
+    inifile -> ceph [comment="provider"]
+    inifile -> cinder [comment="provider"]
+    inifile -> glance [comment="provider"]
+    inifile -> gnocchi [comment="provider"]
+    inifile -> heat [comment="provider"]
+    inifile -> ironic [comment="provider"]
+    inifile -> keystone [comment="provider"]
+    inifile -> ceilometer [comment="provider"]
+    inifile -> apache [comment="provider"]
+    inifile -> manila [comment="provider"]
+    inifile -> neutron [comment="provider"]
+    inifile -> nova [comment="provider"]
+    inifile -> openstacklib [comment="provider"]
+    inifile -> sahara [comment="provider"]
+    inifile -> swift [comment="provider"]
+    inifile -> tempest [comment="provider"]
+    inifile -> trove [comment="provider"]
+    inifile -> tuskar [comment="provider"]
+
+    // IRONIC
+    // configs: nova
+    //          tripleo
+    // tests: nova (optional plugin)
+
+    // KEYSTONE
+    // configs: ceilometer
+    //          ceph
+    //          cinder
+    // tests: ceilometer (configs, used)
+    //        ceph
+    //        cinder
+    keystone -> glance [comment="included"]
+    keystone -> gnocchi [comment="test_config,tests,required"]
+    keystone -> tuskar [comment="test_config,configs", style="invis"]
+    keystone -> heat [comment="tests,configs,classes"]
+    keystone -> nova [comment="test_config,tests,classes,required, configs" ]
+    keystone -> horizon [comment="templates,configs,test_configs", style="invis"]
+    keystone -> ironic [comment="tests,configs,classes"]
+    keystone -> corosync [comment="tests_config", style="invis"]
+    keystone -> manila [comment="test_config,tests,classes,configs,required"]
+    keystone -> tripleo [comment="configs", style="invis"]
+    keystone -> nagios [comment="configs,templates", style="invis"]
+    keystone -> neutron [comment="test_config,tests,configs,required.classes"]
+    keystone -> ceilometer [comment="test_config,tests,classes,configs"]
+    keystone -> openstack_extras [comment="test_config,configs" style="invis"]
+    keystone -> openstacklib [comment="test_config", style="invis"]
+    keystone -> sahara [comment="test_config,tests,configs", style="invis"]
+    keystone -> swift [comment="tests,configs,test_config,classes,included"]
+    keystone -> tempest [comment="configs", style="invis"]
+    keystone -> trove [comment="tests,configs,required,test_config"]
+
+    // MANILA
+    manila -> tripleo [comment="configs", style="invis"]
+
+    // MEMCACHED
+    memcached -> collectd [comment="test_config", style="invis"]
+    memcached -> neutron [comment="configs", style="invis"]
+    memcached -> nova [comment="test_config,configs", style="invis"]
+    memcached -> swift [comment="tests,classes"]
+
+    module_data
+    // MONGODB
+    mongodb -> ceilometer [comment="tests_config,optional", style="invis"]
+
+    // MYSQL
+    mysql -> ceilometer [comment="classes,tests,tests_config,included"]
+    mysql -> cinder [comment="tests,required,tests_config,templates"]
+    mysql -> collectd [comment="test_configs,configs", style="invis"]
+    mysql -> galera [comment="templates,tests_config,classes"]
+    mysql -> glance [comment="tests,tests_config,required"]
+    mysql -> gnocchi [comment="tests,tests_config,required"]
+    mysql -> heat [comment="tests,tests_config,required,classes"]
+    mysql -> ironic [comment="tests,tests_config,required,classes"]
+    mysql -> keystone [comment="tests,tests_config,required"]
+    mysql -> manila [comment="tests,tests_config,required"]
+    mysql -> neutron [comment="tests,test_config,required"]
+    mysql -> nova [comment="tests,tests_config,required"]
+    mysql -> openstack_extras [comment="configs", style="invis"]
+    mysql -> openstacklib [comment="tests,tests_configs,included"]
+    mysql -> remote [comment="provider,tests_configs,configs", style="invis"]
+    mysql -> sahara [comment="tests,tests_configs,classes,required"]
+    mysql -> swift [comment="tests", style="invis"]
+    mysql -> stdlib [comment="tests", style="invis"]
+    mysql -> tripleo [comments="tests_configs,templates,configs", style="invis"]
+    mysql -> trove [comments="templates,tests_configs,tests,required"]
+    mysql -> tuskar [comments="tests,required", style="invis"]
+
+    // N1K_VSM
+    // None
+
+    // NAGIOS
+    // None
+
+    // NEUTRON
+
+    neutron -> horizon [comment="test_configs,templates", style="invis"]
+    neutron -> ironic [comment="configs", style="invis"]
+    neutron -> keystone [comment="test_configs", style="invis"]
+    neutron -> manila [comment="test_configs, configs", style="invis"]
+    neutron -> nagios [comment="data,templates,configs", style="invis"]
+    neutron -> nova [comment="test_configs,configs", style="invis"]
+    neutron -> openstack_extras [comment="test_configs", style="invis"]
+    neutron -> pacemaker [comment="configs", style="invis"]
+    neutron -> sahara [comment="configs", style="invis"]
+    neutron -> tempest [comment="configs, test_configs", style="invis"]
+    neutron -> tripleo [comment="configs", style="invis"]
+    neutron -> trove [comment="templates,configs,test_configs", style="invis"]
+
+    // NOVA
+    nova -> ceilometer [comment="tests_config,configs", style="invis"]
+    nova -> cinder [comment="tests_config", style="invis"]
+    nova -> manila [comment="tests_config,configs", style="invis"]
+    nova -> nagios [comment="data,templates", style="invis"]
+    nova -> neutron [comment="configs,test_config", style="invis"]
+    nova -> openstack_extras [comment="configs,test_configs", style="invis"]
+    nova -> tempest [comment="configs", style="invis"]
+    nova -> tripleo [comments="tests_configs,templates,configs", style="invis"]
+    nova -> trove [comments="templates,tests_configs,tests,configs", style="invis"]
+
+    // NSSDB
+
+    nssdb -> ceph [comment="test_configs", style="invis"]
+    nssdb -> certmonger [comment="configs", style="invis"]
+    nssdb -> qpid [comment="classes"]
+
+    // NTP
+    ntp -> stdlib [comment="tests", style="invis"]
+
+    openstack_extras -> ceilometer [comment="tests", style="invis"]
+    openstack_extras -> cinder [comment="tests", style="invis"]
+    openstack_extras -> glance [comment="tests", style="invis"]
+    openstack_extras -> heat [comment="tests", style="invis"]
+    openstack_extras -> horizon [comment="tests", style="invis"]
+    openstack_extras -> ironic [comment="tests", style="invis"]
+    openstack_extras -> keystone [comment="tests", style="invis"]
+    openstack_extras -> manila [comment="tests", style="invis"]
+    openstack_extras -> neutron [comment="tests", style="invis"]
+    openstack_extras -> nova [comment="tests", style="invis"]
+    openstack_extras -> openstacklib [comment="tests", style="invis"]
+    openstack_extras -> sahara [comment="tests", style="invis"]
+    openstack_extras -> swift [comment="tests", style="invis"]
+    openstack_extras -> trove [comment="tests", style="invis"]
+    openstack_extras -> vswitch [comment="tests", style="invis"]
+
+    // OPENSTACKLIB
+
+    openstacklib -> ceilometer [comment="classes,tests_configs"]
+    openstacklib -> cinder [comment="tests_configs,classes"]
+    openstacklib -> glance [comment="tests_configs,classes"]
+    openstacklib -> gnocchi [comment="tests_configs,classes"]
+    openstacklib -> heat [comment="tests_configs,classes"]
+    openstacklib -> ironic [comment="tests_configs,classes"]
+    openstacklib -> keystone [comment="tests_configs,classes"]
+    openstacklib -> manila [comment="tests_configs,classes"]
+    openstacklib -> neutron [comment="tests_configs,classes"]
+    openstacklib -> nova [comment="tests_configs,classes"]
+    openstacklib -> sahara [comment="tests_configs,classes"]
+    openstacklib -> swift [comment="tests_configs", style="invis"]
+    openstacklib -> tempest [comments="tests_configs", style="invis"]
+    openstacklib -> trove [comments="tests_configs,classes"]
+    openstacklib -> tuskar [comments="tests_configs,classes"]
+
+    // PACEMAKER
+    pacemaker -> corosync [comment="provider,configs,tests_configs", style="invis"]
+    pacemaker -> n1k_vsm [comment="templates,configs", style="invis"]
+    pacemaker -> openstack_extras [comment="tests_configs,configs" style="invis"]
+    pacemaker -> tripleo [comment="classes"]
+
+    // PUPPET
+    puppet -> gluster [comment="classes"]
+    // QPID
+    qpid -> ceilometer [comment="tests_configs,configs", style="invis"]
+    qpid -> cinder [comment="classes,tests_config,configs"]
+    qpid -> glance [comment="tests_config,configs", style="invis"]
+    qpid -> heat [comment="tests_configs,configs", style="invis"]
+    qpid -> ironic [comment="configs", style="invis"]
+    qpid -> manila [comment="tests_config,configs,classes"]
+    qpid -> neutron [comment="configs", style="invis"]
+    qpid -> nova [comment="tests_configs,configs,classes,required"]
+    qpid -> sahara [comment="tests,tests_configs", style="invis"]
+    qpid -> trove [comments="tests_configs,configs", style="invis"]
+
+    // RABBITMQ
+    rabbitmq -> ceilometer [comment="tests_config", style="invis"]
+    rabbitmq -> cinder [comment="tests,classes,tests_config"]
+    rabbitmq -> glance [comment="tests_config,configs", style="invis"]
+    rabbitmq -> heat [comment="tests_config,tests", style="invis"]
+    rabbitmq -> ironic [comment="tests_config,tests", style="invis"]
+    rabbitmq -> manila [comment="tests,tests_config,classes"]
+    rabbitmq -> neutron [comment="tests,test_config", style="invis"]
+    rabbitmq -> nova [comment="tests,tests_config,classes"]
+    rabbitmq -> openstack_extras [comment="configs", style="invis"]
+    rabbitmq -> openstacklib [comment="tests,tests_configs", style="invis"]
+    rabbitmq -> sahara [comment="tests,tests_configs", style="invis"]
+    rabbitmq -> tripleo [comments="configs", style="invis"]
+    rabbitmq -> trove [comments="tests_configs,tests", style="invis"]
+
+    // REDIS
+    redis -> collectd [comment="test_configs", style="invis"]
+    redis -> tripleo [comment="configs", style="invis"]
+    redis -> ceilometer [comment="test_configs", style="invis"]
+
+    // REMOTE
+    // None
+
+    // RSYCN
+    rsync -> swift [comment="tests,classes"]
+
+    // SAHARA
+    // None
+
+    // STAGING
+    staging -> mysql [comment="classes"]
+    staging -> rabbitmq [comment="classes"]
+
+    // STDLIB
+    stdlib -> meta_all
+
+    // swift
+    swift -> cinder [comment="tests_config,configs", style="invis"]
+    swift -> glance [comment="tests_config,configs", style="invis"]
+    swift -> gnocchi [comment="tests_config,configs", style="invis"]
+    swift -> nagios [comment="data,templates", style="invis"]
+    swift -> tripleo [comments="configs", style="invis"]
+    swift -> tempest [comments="configs", style="invis"]
+    swift -> trove [comments="tests_configs,configs", style="invis"]
+
+    // SYSCTL
+    sysctl -> neutron [comment="test_config,classes"]
+    sysctl -> nova [comment="test_config,classes"]
+    sysctl -> tripleo [comment="classes"]
+
+    // TEMPEST
+    // None
+
+    // TRIPLEO
+    // None
+
+    // TROVE
+    trove -> horizon [comment="templates", style="invis"]
+
+    // TUSKAR
+    tuskar -> horizon [comment="configs,test_configs", style="invis"]
+
+    // VCSREPO
+    vcsrepo -> ironic [comment="classes,optional", style="invis"]
+    vcsrepo -> keystone [comment="classes,optional", style="invis"]
+    vcsrepo -> tempest [comment="classes"]
+
+    // XINETD
+    xinetd -> galera [comment="test_config,classes"]
+    xinetd -> rsync [comment="test_config,classes"]
+    xinetd -> swift [comment="test_config,configs" style="invis"]
+
+}

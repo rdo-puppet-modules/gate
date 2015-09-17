@@ -14,6 +14,20 @@ puppet-ceilometer:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: tests_configs,tests,classes,configs
+        puppet-nova: tests_configs,configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: classes,tests_configs
+        puppet-qpid: tests_configs,configs
+        puppet-redis: tests_configs
+        puppetlabs-apache: included
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mongodb: tests_configs,optional
+        puppetlabs-mysql: classes,tests,tests_configs,included
+        puppetlabs-rabbitmq: tests_config
+        puppetlabs-stdlib: functions
 puppet-ceph:
     deploy-name: ceph
     original:
@@ -29,6 +43,12 @@ puppet-ceph:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-nssdb: tests_configs
+        puppetlabs-apache: included,tests_configs,tests,classes
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-stdlib: functions
 puppet-certmonger:
     deploy-name: certmonger
     original:
@@ -42,6 +62,10 @@ puppet-certmonger:
         location: gerrithub
         name: rdo-puppet-modules/puppet-certmonger
         tests: null
+    test-deps:
+        puppet-nssdb: configs
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-cinder:
     deploy-name: cinder
     original:
@@ -57,6 +81,20 @@ puppet-cinder:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceilometer: ''
+        puppet-ceph: ''
+        puppet-gluster: configs
+        puppet-nova: tests_configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: ''
+        puppet-swift: tests_configs,configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,required,tests_configs,templates
+        puppetlabs-rabbitmq: tests,classes,tests_config
+        puppetlabs-stdlib: functions
 puppet-common:
     deploy-name: common
     original:
@@ -70,6 +108,9 @@ puppet-common:
         location: gerrithub
         name: rdo-puppet-modules/puppet-common
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-galera:
     deploy-name: galera
     original:
@@ -83,6 +124,11 @@ puppet-galera:
         location: gerrithub
         name: rdo-puppet-modules/puppet-galera
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-mysql: templates,tests_configs,classes
+        puppetlabs-stdlib: functions
+        puppetlabs-xinetd: tests_configs,classes
 puppet-glance:
     deploy-name: glance
     original:
@@ -98,6 +144,18 @@ puppet-glance:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceph: ''
+        puppet-keystone: included
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: tests_configs,configs
+        puppet-swift: tests_configs,configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required
+        puppetlabs-rabbitmq: tests_configs,configs
+        puppetlabs-stdlib: functions
 puppet-gluster:
     deploy-name: gluster
     original:
@@ -111,6 +169,11 @@ puppet-gluster:
         location: gerrithub
         name: rdo-puppet-modules/puppet-gluster
         tests: null
+    test-deps:
+        puppet-puppet: classes
+        puppetlabs-concat: classes
+        puppetlabs-firewall: included,configs
+        puppetlabs-stdlib: functions
 puppet-gnocchi:
     deploy-name: gnocchi
     original:
@@ -126,6 +189,15 @@ puppet-gnocchi:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceph: ''
+        puppet-keystone: tests_configs,tests,required
+        puppet-openstacklib: tests_configs,classes
+        puppet-swift: tests_configs,configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required
+        puppetlabs-stdlib: functions
 puppet-heat:
     deploy-name: heat
     original:
@@ -141,6 +213,16 @@ puppet-heat:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: tests,configs,classes
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: tests_configs,configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required,classes
+        puppetlabs-rabbitmq: tests_configs,tests
+        puppetlabs-stdlib: functions
 puppet-horizon:
     deploy-name: horizon
     original:
@@ -156,6 +238,15 @@ puppet-horizon:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: templates,configs,tests_configs
+        puppet-neutron: tests_configs,templates
+        puppet-openstack_extras: tests
+        puppet-trove: templates
+        puppet-tuskar: configs,tests_configs
+        puppetlabs-apache: included,tests_configs,classes
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-ironic:
     deploy-name: ironic
     original:
@@ -171,6 +262,19 @@ puppet-ironic:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-glance: configs
+        puppet-keystone: tests,configs,classes
+        puppet-neutron: configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required,classes
+        puppetlabs-rabbitmq: tests_configs,tests
+        puppetlabs-stdlib: functions
+        puppetlabs-vcsrepo: classes,optional
 puppet-keystone:
     deploy-name: keystone
     original:
@@ -186,6 +290,16 @@ puppet-keystone:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-neutron: tests_configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppetlabs-apache: tests_configs,included,classes
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required
+        puppetlabs-stdlib: functions
+        puppetlabs-vcsrepo: classes,optional
 puppet-manila:
     deploy-name: manila
     original:
@@ -201,6 +315,19 @@ puppet-manila:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-gluster: tests
+        puppet-keystone: tests_configs,tests,classes,configs,required
+        puppet-neutron: tests_configs, configs
+        puppet-nova: tests_configs,configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: tests_configs,configs,classes
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required
+        puppetlabs-rabbitmq: tests,tests_configs,classes
+        puppetlabs-stdlib: functions
 puppet-memcached:
     deploy-name: memcached
     original:
@@ -214,32 +341,10 @@ puppet-memcached:
         location: gerrithub
         name: rdo-puppet-modules/puppet-memcached
         tests: null
-puppet-snmp:
-    deploy-name: snmp
-    original:
-        location: github
-        name: saz/puppet-snmp
-        type: git
-        watch-branches:
-        - master
-        watch-method: poll
-    replica:
-        location: gerrithub
-        name: rdo-puppet-modules/puppet-snmp
-        tests: null
-puppet-module-keepalived:
-    deploy-name: module-keepalived
-    original:
-        location: github
-        name: pdxcat/puppet-module-keepalived
-        type: git
-        watch-branches:
-        - master
-        watch-method: poll
-    replica:
-        location: gerrithub
-        name: rdo-puppet-modules/puppet-module-keepalived
-        tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-firewall: classes
+        puppetlabs-stdlib: functions
 puppet-module-collectd:
     deploy-name: module-collectd
     original:
@@ -253,6 +358,12 @@ puppet-module-collectd:
         location: gerrithub
         name: rdo-puppet-modules/puppet-module-collectd
         tests: null
+    test-deps:
+        puppet-memcached: tests_configs
+        puppet-redis: tests_configs
+        puppetlabs-concat: classes
+        puppetlabs-mysql: tests_configs,configs
+        puppetlabs-stdlib: functions
 puppet-module-data:
     deploy-name: module-data
     original:
@@ -266,6 +377,25 @@ puppet-module-data:
         location: gerrithub
         name: rdo-puppet-modules/puppet-module-data
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
+puppet-module-keepalived:
+    deploy-name: module-keepalived
+    original:
+        location: github
+        name: pdxcat/puppet-module-keepalived
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-module-keepalived
+        tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-n1k-vsm:
     deploy-name: n1k_vsm
     original:
@@ -281,6 +411,10 @@ puppet-n1k-vsm:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-pacemaker: templates,configs
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-nagios-openstack:
     deploy-name: nagios
     original:
@@ -294,6 +428,15 @@ puppet-nagios-openstack:
         location: gerrithub
         name: rdo-puppet-modules/puppet-nagios-openstack
         tests: null
+    test-deps:
+        puppet-ceilometer: controls
+        puppet-keystone: configs,templates
+        puppet-neutron: data,templates,configs
+        puppet-nova: data,templates
+        puppet-swift: data,templates
+        puppetlabs-apache: classes
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-neutron:
     deploy-name: neutron
     original:
@@ -309,6 +452,22 @@ puppet-neutron:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: tests_configs,tests,configs,required.classes
+        puppet-memcached: configs
+        puppet-nova: configs,tests_configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: configs
+        puppet-vswitch: required
+        puppetlabs-concat: classes
+        puppetlabs-firewall: configs,tests_configs
+        puppetlabs-haproxy: tests_configs,configs
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required
+        puppetlabs-rabbitmq: tests,tests_configs
+        puppetlabs-stdlib: functions
+        puppetlabs-sysctl: tests_configs,classes
 puppet-nova:
     deploy-name: nova
     original:
@@ -324,6 +483,22 @@ puppet-nova:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceph: ''
+        puppet-cinder: ''
+        puppet-glance: configs
+        puppet-keystone: tests_configs,tests,classes,required,configs
+        puppet-memcached: tests_configs,configs
+        puppet-neutron: tests_configs,configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: tests_configs,configs,classes,required
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,required
+        puppetlabs-rabbitmq: tests,tests_configs,classes
+        puppetlabs-stdlib: functions
+        puppetlabs-sysctl: tests_configs,classes
 puppet-nssdb:
     deploy-name: nssdb
     original:
@@ -337,6 +512,9 @@ puppet-nssdb:
         location: gerrithub
         name: rdo-puppet-modules/puppet-nssdb
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-openstack_extras:
     deploy-name: openstack_extras
     original:
@@ -352,6 +530,19 @@ puppet-openstack_extras:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceilometer: ''
+        puppet-glance: configs
+        puppet-keystone: tests_configs,configs
+        puppet-neutron: tests_configs
+        puppet-nova: configs,tests_configs
+        puppet-pacemaker: tests_configs,configs
+        puppet-vswitch: configs
+        puppetlabs-concat: classes
+        puppetlabs-haproxy: tests_configs
+        puppetlabs-mysql: configs
+        puppetlabs-rabbitmq: configs
+        puppetlabs-stdlib: functions
 puppet-openstacklib:
     deploy-name: openstacklib
     original:
@@ -367,6 +558,15 @@ puppet-openstacklib:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: tests_configs
+        puppet-openstack_extras: tests
+        puppetlabs-apache: included,classes
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,included
+        puppetlabs-rabbitmq: tests,tests_configs
+        puppetlabs-stdlib: functions
 puppet-pacemaker:
     deploy-name: pacemaker
     original:
@@ -380,6 +580,11 @@ puppet-pacemaker:
         location: gerrithub
         name: rdo-puppet-modules/puppet-pacemaker
         tests: null
+    test-deps:
+        puppet-neutron: configs
+        puppetlabs-concat: classes
+        puppetlabs-firewall: classes
+        puppetlabs-stdlib: functions
 puppet-puppet:
     deploy-name: puppet
     original:
@@ -393,6 +598,9 @@ puppet-puppet:
         location: gerrithub
         name: rdo-puppet-modules/puppet-puppet
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-qpid:
     deploy-name: qpid
     original:
@@ -406,6 +614,11 @@ puppet-qpid:
         location: gerrithub
         name: rdo-puppet-modules/puppet-qpid
         tests: null
+    test-deps:
+        puppet-certmonger: ''
+        puppet-nssdb: classes
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-redis:
     deploy-name: redis
     original:
@@ -419,6 +632,9 @@ puppet-redis:
         location: gerrithub
         name: rdo-puppet-modules/puppet-redis
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-remote:
     deploy-name: remote
     original:
@@ -432,6 +648,10 @@ puppet-remote:
         location: gerrithub
         name: rdo-puppet-modules/puppet-remote
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-mysql: provider,tests_configs,configs
+        puppetlabs-stdlib: functions
 puppet-sahara:
     deploy-name: sahara
     original:
@@ -447,6 +667,34 @@ puppet-sahara:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-galera: packages
+        puppet-keystone: tests_configs,tests,configs
+        puppet-neutron: configs
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs,classes
+        puppet-qpid: tests,tests_configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests,tests_configs,classes,required
+        puppetlabs-rabbitmq: tests,tests_configs
+        puppetlabs-stdlib: functions
+puppet-snmp:
+    deploy-name: snmp
+    original:
+        location: github
+        name: saz/puppet-snmp
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppet-snmp
+        tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-ssh:
     deploy-name: ssh
     original:
@@ -460,6 +708,9 @@ puppet-ssh:
         location: gerrithub
         name: rdo-puppet-modules/puppet-ssh
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-staging:
     deploy-name: staging
     original:
@@ -473,6 +724,9 @@ puppet-staging:
         location: gerrithub
         name: rdo-puppet-modules/puppet-staging
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-swift:
     deploy-name: swift
     original:
@@ -488,6 +742,18 @@ puppet-swift:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceilometer: ''
+        puppet-keystone: tests,configs,tests_configs,classes,included
+        puppet-memcached: tests,classes
+        puppet-openstack_extras: tests
+        puppet-openstacklib: tests_configs
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: tests
+        puppetlabs-rsync: tests,classes
+        puppetlabs-stdlib: functions
+        puppetlabs-xinetd: tests_configs,configs
 puppet-tempest:
     deploy-name: tempest
     original:
@@ -503,6 +769,16 @@ puppet-tempest:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: configs
+        puppet-neutron: configs, tests_configs
+        puppet-nova: configs
+        puppet-openstacklib: ''
+        puppet-swift: ''
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-stdlib: functions
+        puppetlabs-vcsrepo: classes
 puppet-timezone:
     deploy-name: timezone
     original:
@@ -516,6 +792,9 @@ puppet-timezone:
         location: gerrithub
         name: rdo-puppet-modules/puppet-timezone
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-tripleo:
     deploy-name: tripleo
     original:
@@ -531,6 +810,27 @@ puppet-tripleo:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-ceilometer: ''
+        puppet-cinder: ''
+        puppet-galera: templates
+        puppet-glance: configs
+        puppet-keystone: configs
+        puppet-manila: configs
+        puppet-module-keepalived: ''
+        puppet-neutron: ''
+        puppet-nova: ''
+        puppet-pacemaker: classes
+        puppet-redis: configs
+        puppet-swift: ''
+        puppetlabs-concat: classes
+        puppetlabs-firewall: classes
+        puppetlabs-haproxy: ''
+        puppetlabs-mysql: ''
+        puppetlabs-rabbitmq: ''
+        puppetlabs-stdlib: functions
+        puppetlabs-sysctl: classes
+        puppetlabs-xinetd: ''
 puppet-trove:
     deploy-name: trove
     original:
@@ -546,6 +846,19 @@ puppet-trove:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: tests,configs,required,tests_configs
+        puppet-neutron: templates,configs,tests_configs
+        puppet-nova: ''
+        puppet-openstack_extras: tests
+        puppet-openstacklib: ''
+        puppet-qpid: ''
+        puppet-swift: ''
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: ''
+        puppetlabs-rabbitmq: ''
+        puppetlabs-stdlib: functions
 puppet-tuskar:
     deploy-name: tuskar
     original:
@@ -561,6 +874,13 @@ puppet-tuskar:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-keystone: tests_configs,configs
+        puppet-openstacklib: ''
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-mysql: ''
+        puppetlabs-stdlib: functions
 puppet-vlan:
     deploy-name: vlan
     original:
@@ -574,6 +894,9 @@ puppet-vlan:
         location: gerrithub
         name: rdo-puppet-modules/puppet-vlan
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet-vswitch:
     deploy-name: vswitch
     original:
@@ -589,6 +912,10 @@ puppet-vswitch:
         tests:
         - upstream
         - stability
+    test-deps:
+        puppet-openstack_extras: tests
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppet_aviator:
     deploy-name: aviator
     original:
@@ -602,6 +929,9 @@ puppet_aviator:
         location: gerrithub
         name: rdo-puppet-modules/puppet_aviator
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-apache:
     deploy-name: apache
     original:
@@ -615,19 +945,10 @@ puppetlabs-apache:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-apache
         tests: null
-puppetlabs-corosync:
-    deploy-name: corosync
-    original:
-        location: github
-        name: puppetlabs/puppetlabs-corosync
-        type: git
-        watch-branches:
-        - master
-        watch-method: poll
-    replica:
-        location: gerrithub
-        name: rdo-puppet-modules/puppetlabs-corosync
-        tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-inifile: provider
+        puppetlabs-stdlib: functions
 puppetlabs-concat:
     deploy-name: concat
     original:
@@ -641,6 +962,26 @@ puppetlabs-concat:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-concat
         tests: null
+    test-deps:
+        puppetlabs-stdlib: functions
+puppetlabs-corosync:
+    deploy-name: corosync
+    original:
+        location: github
+        name: puppetlabs/puppetlabs-corosync
+        type: git
+        watch-branches:
+        - master
+        watch-method: poll
+    replica:
+        location: gerrithub
+        name: rdo-puppet-modules/puppetlabs-corosync
+        tests: null
+    test-deps:
+        puppet-keystone: tests_config
+        puppet-pacemaker: provider,configs,tests_configs
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-firewall:
     deploy-name: firewall
     original:
@@ -654,6 +995,9 @@ puppetlabs-firewall:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-firewall
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-haproxy:
     deploy-name: haproxy
     original:
@@ -667,6 +1011,9 @@ puppetlabs-haproxy:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-haproxy
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-inifile:
     deploy-name: inifile
     original:
@@ -680,6 +1027,9 @@ puppetlabs-inifile:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-inifile
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-mongodb:
     deploy-name: mongodb
     original:
@@ -693,6 +1043,9 @@ puppetlabs-mongodb:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-mongodb
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-mysql:
     deploy-name: mysql
     original:
@@ -706,6 +1059,10 @@ puppetlabs-mysql:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-mysql
         tests: null
+    test-deps:
+        puppet-staging: classes
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-ntp:
     deploy-name: ntp
     original:
@@ -719,6 +1076,9 @@ puppetlabs-ntp:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-ntp
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-rabbitmq:
     deploy-name: rabbitmq
     original:
@@ -732,6 +1092,10 @@ puppetlabs-rabbitmq:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-rabbitmq
         tests: null
+    test-deps:
+        puppet-staging: classes
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-rsync:
     deploy-name: rsync
     original:
@@ -745,6 +1109,10 @@ puppetlabs-rsync:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-rsync
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
+        puppetlabs-xinetd: tests_configs,classes
 puppetlabs-stdlib:
     deploy-name: stdlib
     original:
@@ -758,6 +1126,9 @@ puppetlabs-stdlib:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-stdlib
         tests: null
+    test-deps:
+        puppetlabs-mysql: tests
+        puppetlabs-ntp: tests
 puppetlabs-sysctl:
     deploy-name: sysctl
     original:
@@ -771,6 +1142,9 @@ puppetlabs-sysctl:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-sysctl
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-vcsrepo:
     deploy-name: vcsrepo
     original:
@@ -784,6 +1158,9 @@ puppetlabs-vcsrepo:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-vcsrepo
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
 puppetlabs-xinetd:
     deploy-name: xinetd
     original:
@@ -797,3 +1174,6 @@ puppetlabs-xinetd:
         location: gerrithub
         name: rdo-puppet-modules/puppetlabs-xinetd
         tests: null
+    test-deps:
+        puppetlabs-concat: classes
+        puppetlabs-stdlib: functions
