@@ -29,7 +29,7 @@
             url: https://github.com/gabrielecerami/gitnetics.git
             skip-tag: true
             branches:
-                - fixes-1
+                - master
 
 - scm:
     name: khaleesi
@@ -38,7 +38,7 @@
             refspec: +refs/changes/*:refs/remotes/origin/changes/*
             url: https://github.com/redhat-openstack/khaleesi.git
             branches:
-                - changes/59/232059/98
+                - changes/59/232059/108
             basedir: khaleesi
             skip-tag: true
 
@@ -149,7 +149,7 @@
             silent: true
             trigger-on:
                 - comment-added-event:
-                    approval-category: 'Code-review'
+                    approval-category: 'Code-Review'
                     approval-value: 2
                 - comment-added-event:
                     approval-category: 'Verified'
@@ -168,3 +168,8 @@
                       unstable: true
                       notbuilt: true
 
+- publisher:
+    name: archive-results
+    publishers:
+      - archive:
+          artifacts: '*_test-results.tar.gz'

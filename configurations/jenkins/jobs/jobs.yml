@@ -10,7 +10,7 @@
     builders:
         - shell: |
             PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
-            PROJECTS_DIR="$WORKSPACEprojects"
+            PROJECTS_DIR="$WORKSPACE/projects"
             mkdir -p $PROJECTS_DIR
 
             base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
@@ -52,6 +52,8 @@
     triggers:
         - replica-gerrit-recombination-create-event
         - daily-once
+    publishers:
+        - archive-results
     builders:
         - shining-panda:
             system-site-packages: true
@@ -77,35 +79,31 @@
                     type: opm
                 EOF
 
-
-                pushd khaleesi
-
                 # install ksgen
-                pushd tools/ksgen/
+                pushd khaleesi/tools/ksgen/
                 python setup.py develop
                 popd
 
-                PROJECTS_CONF="$WORKSPACE/projects.yaml"
+                PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
                 PROJECTS_DIR="$WORKSPACE/projects"
-                VAR_FILE="$WORKSPACE/khaleesi/project-vars.yaml"
-                UNTESTED_RECOMBINATIONS_DIR="$WORKSPACE/untested-recombinations/recombinations"
-                TESTS_INFO_DIR="$WORKSPACE/untested-recombinations/test-vars"
+                TESTS_BASEDIR="$WORKSPACE/tests/"
 
-                for dir in $UNTESTED_RECOMBINATIONS_DIR $TEST_INFO_DIR $PROJECTS_DIR; do
+                for dir in $TESTS_BASEDIR $PROJECTS_DIR; do
                     mkdir -p $dir
                 done
 
                 base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
+
                 if [ -n "$GERRIT_PROJECT" ]; then
                     # triggered by gerrit event
-                $base_command --projects $GERRIT_PROJECT download-untested-recombinations --recombination-id $GERRIT_CHANGE --var-file $VAR_FILE --tests-info-dir $TESTS_INFO_DIR --download-dir $UNTESTED_RECOMBINATIONS_DIR
+                    $base_command --projects $GERRIT_PROJECT prepare-tests --recombination-id $GERRIT_CHANGE --tests-base-dir $TESTS_BASEDIR
                 else
-                    # triggered by timer
-                $base_command download-untested-recombinations --var-file $VAR_FILE --tests-info-dir $TESTS_INFO_DIR --download-dir $UNTESTED_RECOMBINATIONS_DIR
+                    # triggered by timer or by user
+                    $base_command prepare-tests --tests-base-dir $TESTS_BASEDIR
                 fi
 
-
-                for test_info_file in $TESTS_INFO_DIR/*; do
+                pushd khaleesi
+                for test_info_file in $(find $TESTS_BASEDIR -name vars.yaml); do
                     ksgen --config-dir=$CONFIG_BASE/settings generate \
                         --provisioner=centosci \
                         --provisioner-site=default \
@@ -119,28 +117,37 @@
                         --product=rdo \
                         --product-version=kilo \
                         --product-version-repo=delorean \
-                        --extra-vars @project-vars.yaml \
-                        --extra-vars tests_dir=$WORKSPACE/gate/tests \
+                        --extra-vars @$TESTS_BASEDIR/project-vars.yaml \
+                        --extra-vars tests_sources=$WORKSPACE/gate/tests \
+                        --extra-vars tests_basedir=$TESTS_BASEDIR \
                         --extra-vars @$test_info_file \
                         ksgen_settings.yml
 
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/main.yml || true
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml
                     ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
                 done
+                popd
+
+                if [ -n "$GERRIT_PROJECT" ]; then
+                    # triggered by gerrit event
+                    $base_command --projects $GERRIT_PROJECT vote-recombinations --recombination-id $GERRIT_CHANGE --tests-base-dir $TESTS_BASEDIR
+                else
+                    # triggered by timer or by user
+                    $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
+                fi
 
 - job:
     name: opm-ci-merge-recombinations
     scm:
         - gitnetics
         - opm-gate
-    trigger:
-        - replica-gerrit-patches-recombination-vote-event
-        - replica-gerrit-original-recombination-vote-event
+    triggers:
+        - replica-gerrit-recombination-vote-event
         - daily-once
     builders:
         - shell: |
             PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
-            PROJECTS_DIR="$WORKSPACEprojects"
+            PROJECTS_DIR="$WORKSPACE/projects"
             mkdir -p $PROJECTS_DIR
             base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR merge-recombinations"
             if [ -n "$GERRIT_PROJECT" ]; then
@@ -154,16 +161,17 @@
 - job:
     name: opm-ci-repos-maintenance
     scm:
+        - gitnetics
         - opm-gate
     triggers:
         - daily-once
     builders:
         - shell: |
             PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
-            PROJECTS_DIR="$WORKSPACEprojects"
+            PROJECTS_DIR="$WORKSPACE/projects"
             mkdir -p $PROJECTS_DIR
-            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR cleanup"
-            $base_command
+
+            python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR cleanup
 
 - job:
     name: opm-ci-midstream-package
@@ -180,8 +188,6 @@
             python-version: system-CPython-2.7
             build-environment: virtualenv
             command: |
-                python gitnome generate-tester-vars gate/configurations/projects.yaml ../khaleesi/project-vars.yaml ../khaleesi/project.list
-
                 source khaleesi-settings/jenkins/ansible_settings.sh
                 export CONFIG_BASE=$WORKSPACE/khaleesi-settings
                 export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
@@ -226,7 +232,7 @@
                       --extra-vars workspace=$WORKSPACE \
                      ksgen_settings.yml
 
-                ./run.sh -vvvv --use ksgen_settings.yml playbooks/opm/package.yml
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/package.yml
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
     publishers:
         - archive:
