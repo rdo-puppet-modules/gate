@@ -16,7 +16,7 @@
             base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
             if [ -n "$GERRIT_PROJECT" ]; then
                 # triggered by gerrit event
-                $base_command --projects $GERRIT_PROJECT --branches $GERRIT_BRANCH poll-original
+                $base_command --projects $GERRIT_PROJECT --watch-branches $GERRIT_BRANCH poll-original
             else
                 # triggered by timer
                 $base_command poll-original
@@ -32,11 +32,13 @@
         - daily-once
     builders:
         - shell: |
+            PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
+            PROJECTS_DIR="$WORKSPACE/projects"
             mkdir -p $PROJECTS_DIR
             base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
             if [ -n "$GERRIT_PROJECT" ]; then
                 # triggered by gerrit event
-                $base_command --projects $GERRIT_PROJECT --change-id $GERRIT_CHANGE poll-replica
+                $base_command --projects $GERRIT_PROJECT --change-id $GERRIT_CHANGE_NUMBER poll-replica
             else
                 # triggered by timer
                 $base_command poll-replica
@@ -96,7 +98,7 @@
 
                 if [ -n "$GERRIT_PROJECT" ]; then
                     # triggered by gerrit event
-                    $base_command --projects $GERRIT_PROJECT prepare-tests --recombination-id $GERRIT_CHANGE --tests-base-dir $TESTS_BASEDIR
+                    $base_command --projects $GERRIT_PROJECT prepare-tests --recombination-id $GERRIT_CHANGE_NUMBER --tests-base-dir $TESTS_BASEDIR
                 else
                     # triggered by timer or by user
                     $base_command prepare-tests --tests-base-dir $TESTS_BASEDIR
@@ -130,7 +132,7 @@
 
                 if [ -n "$GERRIT_PROJECT" ]; then
                     # triggered by gerrit event
-                    $base_command --projects $GERRIT_PROJECT vote-recombinations --recombination-id $GERRIT_CHANGE --tests-base-dir $TESTS_BASEDIR
+                    $base_command --projects $GERRIT_PROJECT vote-recombinations --recombination-id $GERRIT_CHANGE_NUMBER --tests-base-dir $TESTS_BASEDIR
                 else
                     # triggered by timer or by user
                     $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
@@ -149,13 +151,13 @@
             PROJECTS_CONF="gate/configurations/gitnetics/projects.yaml"
             PROJECTS_DIR="$WORKSPACE/projects"
             mkdir -p $PROJECTS_DIR
-            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR merge-recombinations"
+            base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
             if [ -n "$GERRIT_PROJECT" ]; then
                 # triggered by gerrit event
-                $base_command --projects $GERRIT_PROJECT --recombination-id $GERRIT_CHANGE
+                $base_command --projects $GERRIT_PROJECT merge-recombinations --recombination-id $GERRIT_CHANGE_NUMBER
             else
                 # triggered by timer
-                $base_command
+                $base_command merge-recombinations
             fi
 
 - job:
@@ -203,6 +205,10 @@
                 installer:
                     type: opm
                 EOF
+
+                # Until I find a better solution to generate project-vars
+                cp gate/configurations/gitnetics/projects.yaml khaleesi/project-vars.yaml
+                sed -i -e "s/^/    /g" -e "s/.*---/---\nprojects:/g"  khaleesi/project-vars.yaml
 
 
                 pushd khaleesi

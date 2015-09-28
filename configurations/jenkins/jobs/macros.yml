@@ -1,7 +1,7 @@
 ---
 - defaults:
     name: global
-    disabled: true
+    disabled: false
     logrotate:
         daysToKeep: 30
         numToKeep: 50
@@ -29,7 +29,7 @@
             url: https://github.com/gabrielecerami/gitnetics.git
             skip-tag: true
             branches:
-                - master
+                - reenable-fixes
 
 - scm:
     name: khaleesi
@@ -38,7 +38,7 @@
             refspec: +refs/changes/*:refs/remotes/origin/changes/*
             url: https://github.com/redhat-openstack/khaleesi.git
             branches:
-                - changes/59/232059/108
+                - changes/59/232059/110
             basedir: khaleesi
             skip-tag: true
 
@@ -74,18 +74,28 @@
                       failed: true
                       unstable: true
                       notbuilt: true
+                - project-compare-type: 'ANT'
+                  project-pattern: stackforge/puppet-*
+                  branches:
+                      - branch-compare-type: 'ANT'
+                        branch-pattern: 'master'
+                  skip-vote:
+                      successful: true
+                      failed: true
+                      unstable: true
+                      notbuilt: true
 
 - trigger:
     name: replica-gerrit-recombination-merge-event
     triggers:
         - gerrit:
-            server-name: 'Gerrithub-nonvoting'
+            server-name: Gerrithub-nonvoting_rdo-ci-service
             silent: true
             trigger-on:
                 - change-merged-event
             projects:
                 - project-compare-type: 'ANT'
-                  project-pattern: 'rdo-puppet-modules/puppet-*'
+                  project-pattern: 'rdo-puppet-modules/puppet*'
                   branches:
                       - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-*'
@@ -108,7 +118,7 @@
                     exclude-no-code-change: true
             projects:
                 - project-compare-type: 'ANT'
-                  project-pattern: rdo-puppet-modules/puppet-*
+                  project-pattern: rdo-puppet-modules/puppet*
                   branches:
                       - branch-compare-type: 'ANT'
                         branch-pattern: '*-patches'
@@ -126,12 +136,12 @@
             silent: true
             trigger-on:
                 - patchset-created-event:
-                    exclude-drafts: true
+                    exclude-drafts: false
                     exclude-trivial-rebase: false
-                    exclude-no-code-change: true
+                    exclude-no-code-change: false
             projects:
                 - project-compare-type: 'ANT'
-                  project-pattern: rdo-puppet-modules/puppet-*
+                  project-pattern: rdo-puppet-modules/puppet*
                   branches:
                       - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-*'
@@ -156,7 +166,7 @@
                     approval-value: 1
             projects:
                 - project-compare-type: 'ANT'
-                  project-pattern: rdo-puppet-modules/puppet-*
+                  project-pattern: rdo-puppet-modules/puppet*
                   branches:
                       - branch-compare-type: 'ANT'
                         branch-pattern: 'recomb-original-*'
