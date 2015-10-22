@@ -61,9 +61,10 @@
             system-site-packages: true
             python-version: system-CPython-2.7
             build-environment: virtualenv
+            ignore-exit-code: true
             command: |
                 #pip install -U ansible; ansible --version
-                pip install markupsafe
+                pip install markupsafe shyaml
 
                 source khaleesi-settings/jenkins/ansible_settings.sh
                 export CONFIG_BASE=$WORKSPACE/khaleesi-settings
@@ -89,6 +90,12 @@
                 PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
                 PROJECTS_DIR="$WORKSPACE/projects"
                 TESTS_BASEDIR="$WORKSPACE/tests/"
+
+                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value projects.${GERRIT_PROJECT}.email)
+                if [ -z "$EMAIL" ]; then
+                    echo "No project-specific email address found (projects.${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
+                    EMAIL=bkero@redhat.com
+                fi
 
                 for dir in $TESTS_BASEDIR $PROJECTS_DIR; do
                     mkdir -p $dir
@@ -125,8 +132,7 @@
                         --extra-vars @$test_info_file \
                         ksgen_settings.yml
 
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || FAILURE=1
                 done
                 popd
 
@@ -136,6 +142,35 @@
                 else
                     # triggered by timer or by user
                     $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
+                fi
+
+                if [ -n "$FAILURE" ]; then
+                    echo -e "Subject: Build failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JENKINS_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
+                fi
+        - shining-panda:
+            system-site-packages: true
+            python-version: system-CPython-2.7
+            build-environment: virtualenv
+            command: |
+                source khaleesi-settings/jenkins/ansible_settings.sh
+                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
+                export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
+                export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
+                export ANSIBLE_LOG_PATH=/tmp/ansible.log
+                export KHALEESI_VERBOSE=true
+                source $WORKSPACE/../../private-exports
+
+                PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
+
+                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value projects.${GERRIT_PROJECT}.email)
+                if [ -z "$EMAIL" ]; then
+                    echo "No project-specific email address found (projects.${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
+                    EMAIL=bkero@redhat.com
+                fi
+
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || FAILURE=1
+                if [ -n "$FAILURE" ]; then
+                    echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JENKINS_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi
 
 - job:
