@@ -1,4 +1,4 @@
----
+-
 - job:
     name: opm-ci-upstream-changes
     scm:
@@ -132,7 +132,7 @@
                         --extra-vars @$test_info_file \
                         ksgen_settings.yml
 
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || FAILURE=1
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || FAILURE=1 && FAILED_TEST_INFO_FILE=${test_info_file}
                 done
                 popd
 
@@ -145,7 +145,7 @@
                 fi
 
                 if [ -n "$FAILURE" ]; then
-                    echo -e "Subject: Build failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JENKINS_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
+                    echo -e "Subject: Build failure with ${FAILED_TEST_INFO_FILE} ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi
         - shining-panda:
             system-site-packages: true
@@ -169,8 +169,9 @@
                 fi
 
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || FAILURE=1
+
                 if [ -n "$FAILURE" ]; then
-                    echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JENKINS_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
+                    echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi
 
 - job:
