@@ -1,4 +1,4 @@
--
+---
 - job:
     name: opm-ci-upstream-changes
     scm:
@@ -132,7 +132,7 @@
                         --extra-vars @$test_info_file \
                         ksgen_settings.yml
 
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || FAILURE=1 && FAILED_TEST_INFO_FILE=${test_info_file}
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || FAILURE=1 && FAILED_INFO_FILE="$test_info_file"
                 done
                 popd
 
