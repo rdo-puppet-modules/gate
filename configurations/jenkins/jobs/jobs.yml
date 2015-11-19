@@ -91,10 +91,9 @@
                 PROJECTS_DIR="$WORKSPACE/projects"
                 TESTS_BASEDIR="$WORKSPACE/tests/"
 
-                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value projects.${GERRIT_PROJECT}.email)
-                if [ -z "$EMAIL" ]; then
-                    echo "No project-specific email address found (projects.${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
-                    EMAIL=bkero@redhat.com
+                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT.email || echo "bkero@redhat.com")
+                if [ "$EMAIL" = "bkero@redhat.com"]; then
+                    echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
                 fi
 
                 for dir in $TESTS_BASEDIR $PROJECTS_DIR; do
@@ -162,10 +161,9 @@
 
                 PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
 
-                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value projects.${GERRIT_PROJECT}.email)
-                if [ -z "$EMAIL" ]; then
-                    echo "No project-specific email address found (projects.${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
-                    EMAIL=bkero@redhat.com
+                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT.email || echo "bkero@redhat.com")
+                if [ "$EMAIL" = "bkero@redhat.com"]; then
+                    echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
                 fi
 
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || FAILURE=1
