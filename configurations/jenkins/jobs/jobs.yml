@@ -91,7 +91,7 @@
                 PROJECTS_DIR="$WORKSPACE/projects"
                 TESTS_BASEDIR="$WORKSPACE/tests/"
 
-                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT.email || echo "bkero@redhat.com")
+                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT}.email || echo "bkero@redhat.com")
                 if [ "$EMAIL" = "bkero@redhat.com"]; then
                     echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
                 fi
