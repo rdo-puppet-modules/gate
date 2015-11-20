@@ -162,7 +162,7 @@
                 PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
 
                 EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT}.email || echo "bkero@redhat.com")
-                if [ "$EMAIL" = "bkero@redhat.com"]; then
+                if [ "$EMAIL" = "bkero@redhat.com" ]; then
                     echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
                 fi
 
