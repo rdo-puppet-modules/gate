@@ -50,7 +50,6 @@
         - gitnetics
         - opm-gate
         - khaleesi
-        - khaleesi-settings
     triggers:
         - replica-gerrit-recombination-create-event
         - daily-once
@@ -63,33 +62,35 @@
             build-environment: virtualenv
             ignore-exit-code: true
             command: |
-                #pip install -U ansible; ansible --version
                 pip install markupsafe shyaml
 
-                source khaleesi-settings/jenkins/ansible_settings.sh
-                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
                 export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
                 export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
                 export ANSIBLE_LOG_PATH=/tmp/ansible.log
                 export KHALEESI_VERBOSE=true
+                PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
+                PROJECTS_DIR="$WORKSPACE/projects"
+                TESTS_BASEDIR="$WORKSPACE/tests/"
                 source $WORKSPACE/../../private-exports
 
-                cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
+                pushd khaleesi
+                cp ansible.cfg.example ansible.cfg
+                echo "ssh_args = -F ssh.config.ansible" >> ansible.cfg
+                touch ssh.config.ansible
+
+                cat > settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
                 provisioner:
                     remote_user: root
                     key_file: !join [ !env HOME, /.ssh/id_rsa]
                 installer:
                     type: opm
                 EOF
+                popd
 
                 # install ksgen
                 pushd khaleesi/tools/ksgen/
                 python setup.py develop
                 popd
-
-                PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
-                PROJECTS_DIR="$WORKSPACE/projects"
-                TESTS_BASEDIR="$WORKSPACE/tests/"
 
                 EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT}.email || echo "bkero@redhat.com")
                 if [ "$EMAIL" = "bkero@redhat.com" ]; then
@@ -112,7 +113,7 @@
 
                 pushd khaleesi
                 for test_info_file in $(find $TESTS_BASEDIR -name vars.yaml); do
-                    ksgen --config-dir=$CONFIG_BASE/settings generate \
+                    ksgen --config-dir=settings generate \
                         --provisioner=centosci \
                         --provisioner-site=default \
                         --provisioner-site-user=openstack-puppet \
@@ -151,15 +152,13 @@
             python-version: system-CPython-2.7
             build-environment: virtualenv
             command: |
-                source khaleesi-settings/jenkins/ansible_settings.sh
-                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
                 export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
                 export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
                 export ANSIBLE_LOG_PATH=/tmp/ansible.log
                 export KHALEESI_VERBOSE=true
+                export PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
                 source $WORKSPACE/../../private-exports
 
-                PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
 
                 EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT}.email || echo "bkero@redhat.com")
                 if [ "$EMAIL" = "bkero@redhat.com" ]; then
@@ -226,15 +225,22 @@
             python-version: system-CPython-2.7
             build-environment: virtualenv
             command: |
-                source khaleesi-settings/jenkins/ansible_settings.sh
-                export CONFIG_BASE=$WORKSPACE/khaleesi-settings
                 export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
                 export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
                 export ANSIBLE_LOG_PATH=/tmp/ansible.log
                 export KHALEESI_VERBOSE=true
                 source $WORKSPACE/../../private-exports
 
-                cat > khaleesi-settings/settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
+                # Until I find a better solution to generate project-vars
+                cp gate/configurations/gitnetics/projects.yaml khaleesi/project-vars.yaml
+                sed -i -e "s/^/    /g" -e "s/.*---/---\nprojects:/g"  khaleesi/project-vars.yaml
+
+                pushd khaleesi
+                cp ansible.cfg.example ansible.cfg
+                echo "ssh_args = -F ssh.config.ansible" >> ansible.cfg
+                touch ssh.config.ansible
+
+                cat > settings/provisioner/centosci/site/default/user/openstack-puppet.yml << EOF
                 provisioner:
                     remote_user: root
                     key_file: !join [ !env HOME, /.ssh/id_rsa]
@@ -242,19 +248,12 @@
                     type: opm
                 EOF
 
-                # Until I find a better solution to generate project-vars
-                cp gate/configurations/gitnetics/projects.yaml khaleesi/project-vars.yaml
-                sed -i -e "s/^/    /g" -e "s/.*---/---\nprojects:/g"  khaleesi/project-vars.yaml
-
-
-                pushd khaleesi
-
                 # install ksgen
                 pushd tools/ksgen/
                 python setup.py develop
                 popd
 
-                ksgen --config-dir=$CONFIG_BASE/settings generate \
+                ksgen --config-dir=settings generate \
                       --provisioner=centosci \
                       --provisioner-site=default \
                       --provisioner-site-user=openstack-puppet \
@@ -276,6 +275,7 @@
 
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/package.yml
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml
+                popd
     publishers:
         - archive:
             artifacts: '*.rpm'
