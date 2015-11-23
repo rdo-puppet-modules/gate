@@ -166,7 +166,9 @@
                     echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
                 fi
 
+                pushd khaleesi
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || FAILURE=1
+                popd
 
                 if [ -n "$FAILURE" ]; then
                     echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
