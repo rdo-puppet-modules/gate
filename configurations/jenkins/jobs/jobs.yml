@@ -168,6 +168,26 @@
                 fi
 
                 pushd khaleesi
+                ksgen --config-dir=settings generate \
+                    --provisioner=centosci \
+                    --provisioner-site=default \
+                    --provisioner-site-user=openstack-puppet \
+                    --provisioner-distro=centos \
+                    --provisioner-distro-version=7 \
+                    --distro=centos-7.0 \
+                    --installer=opm \
+                    --installer-topology=aio \
+                    --job=opm \
+                    --product=rdo \
+                    --product-version=kilo \
+                    --product-version-repo=delorean \
+                    --extra-vars installer.short_type=opm \
+                    --extra-vars distro.full_version="7.0" \
+                    --extra-vars @$TESTS_BASEDIR/project-vars.yaml \
+                    --extra-vars tests_sources=$WORKSPACE/gate/tests \
+                    --extra-vars tests_basedir=$TESTS_BASEDIR \
+                    --extra-vars @$test_info_file \
+                    ksgen_settings.yml
                 ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || FAILURE=1
                 popd
 
