@@ -134,9 +134,11 @@
                         --extra-vars @$test_info_file \
                         ksgen_settings.yml
 
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || FAILURE=1 && FAILED_TEST_INFO_FILE="$test_info_file"
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || TEST_FAILURE=1 && FAILED_TEST_INFO_FILE="$test_info_file"
                 done
                 popd
+
+                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || CLEANUP_FAILURE=1
 
                 if [ -n "$GERRIT_PROJECT" ]; then
                     # triggered by gerrit event
@@ -146,52 +148,11 @@
                     $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
                 fi
 
-                if [ -n "$FAILURE" ]; then
+                if [ -n "$TEST_FAILURE" ]; then
                     echo -e "Subject: Build failure with ${FAILED_TEST_INFO_FILE} ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi
-        - shining-panda:
-            system-site-packages: true
-            python-version: system-CPython-2.7
-            build-environment: virtualenv
-            command: |
-                export ANSIBLE_CALLBACK_PLUGINS=$WORKSPACE/khaleesi/plugins/callbacks
-                export KHALEESI_LOG_PATH=$WORKSPACE/ansible_log
-                export ANSIBLE_LOG_PATH=/tmp/ansible.log
-                export KHALEESI_VERBOSE=true
-                export PROJECTS_CONF="$WORKSPACE/gate/configurations/gitnetics/projects.yaml"
-                source $WORKSPACE/../../private-exports
 
-
-                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT}.email || echo "bkero@redhat.com")
-                if [ "$EMAIL" = "bkero@redhat.com" ]; then
-                    echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
-                fi
-
-                pushd khaleesi
-                ksgen --config-dir=settings generate \
-                    --provisioner=centosci \
-                    --provisioner-site=default \
-                    --provisioner-site-user=openstack-puppet \
-                    --provisioner-distro=centos \
-                    --provisioner-distro-version=7 \
-                    --distro=centos-7.0 \
-                    --installer=opm \
-                    --installer-topology=aio \
-                    --job=opm \
-                    --product=rdo \
-                    --product-version=kilo \
-                    --product-version-repo=delorean \
-                    --extra-vars installer.short_type=opm \
-                    --extra-vars distro.full_version="7.0" \
-                    --extra-vars @$TESTS_BASEDIR/project-vars.yaml \
-                    --extra-vars tests_sources=$WORKSPACE/gate/tests \
-                    --extra-vars tests_basedir=$TESTS_BASEDIR \
-                    --extra-vars @$test_info_file \
-                    ksgen_settings.yml
-                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || FAILURE=1
-                popd
-
-                if [ -n "$FAILURE" ]; then
+                if [ -n "$CLEANUP_FAILURE" ]; then
                     echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi
 
