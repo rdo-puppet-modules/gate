@@ -112,33 +112,33 @@
                 fi
 
                 pushd khaleesi
-                for test_info_file in $(find $TESTS_BASEDIR -name vars.yaml); do
-                    ksgen --config-dir=settings generate \
-                        --provisioner=centosci \
-                        --provisioner-site=default \
-                        --provisioner-site-user=openstack-puppet \
-                        --provisioner-distro=centos \
-                        --provisioner-distro-version=7 \
-                        --distro=centos-7.0 \
-                        --installer=opm \
-                        --installer-topology=aio \
-                        --job=opm \
-                        --product=rdo \
-                        --product-version=kilo \
-                        --product-version-repo=delorean \
-                        --extra-vars installer.short_type=opm \
-                        --extra-vars distro.full_version="7.0" \
-                        --extra-vars @$TESTS_BASEDIR/project-vars.yaml \
-                        --extra-vars tests_sources=$WORKSPACE/gate/tests \
-                        --extra-vars tests_basedir=$TESTS_BASEDIR \
-                        --extra-vars @$test_info_file \
-                        ksgen_settings.yml
+                    for test_info_file in $(find $TESTS_BASEDIR -name vars.yaml); do
+                        ksgen --config-dir=settings generate \
+                            --provisioner=centosci \
+                            --provisioner-site=default \
+                            --provisioner-site-user=openstack-puppet \
+                            --provisioner-distro=centos \
+                            --provisioner-distro-version=7 \
+                            --distro=centos-7.0 \
+                            --installer=opm \
+                            --installer-topology=aio \
+                            --job=opm \
+                            --product=rdo \
+                            --product-version=kilo \
+                            --product-version-repo=delorean \
+                            --extra-vars installer.short_type=opm \
+                            --extra-vars distro.full_version="7.0" \
+                            --extra-vars @$TESTS_BASEDIR/project-vars.yaml \
+                            --extra-vars tests_sources=$WORKSPACE/gate/tests \
+                            --extra-vars tests_basedir=$TESTS_BASEDIR \
+                            --extra-vars @$test_info_file \
+                            ksgen_settings.yml
 
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || TEST_FAILURE=1 && FAILED_TEST_INFO_FILE="$test_info_file"
-                done
+                        ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || TEST_FAILURE=1 && FAILED_TEST_INFO_FILE="$test_info_file"
+                    done
+                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || CLEANUP_FAILURE=1
                 popd
 
-                ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || CLEANUP_FAILURE=1
 
                 if [ -n "$GERRIT_PROJECT" ]; then
                     # triggered by gerrit event
