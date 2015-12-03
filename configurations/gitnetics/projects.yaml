@@ -443,8 +443,8 @@ puppet-nagios-openstack:
         location: gerrithub
         name: rdo-puppet-modules/puppet-nagios-openstack
         tests:
-        - upstream
-        - stability
+          # - upstream # TODO: Needs Puppet 4
+          # - stability #    Or rewrite to remove data bindings
     test-deps:
         puppet-ceilometer: controls
         puppet-keystone: configs,templates
@@ -909,8 +909,8 @@ puppet-tuskar:
         location: gerrithub
         name: rdo-puppet-modules/puppet-tuskar
         tests:
-        - upstream
-        - stability
+          # - upstream # TODO: python-tuskarclient package
+          # - stability
     test-deps:
         puppet-keystone: tests_configs,configs
         puppet-openstacklib: ''
