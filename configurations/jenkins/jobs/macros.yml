@@ -38,7 +38,7 @@
             refspec: +refs/changes/*:refs/remotes/origin/changes/*
             url: https://github.com/redhat-openstack/khaleesi.git
             branches:
-                    - changes/59/232059/129
+                    - changes/59/232059/131
             basedir: khaleesi
             skip-tag: true
 
