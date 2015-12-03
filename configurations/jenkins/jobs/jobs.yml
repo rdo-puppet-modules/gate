@@ -135,6 +135,9 @@
                             ksgen_settings.yml
 
                         ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || TEST_FAILURE=1 && FAILED_TEST_INFO_FILE="$test_info_file"
+                        if [ -n "$TEST_FAILURE" ]; then
+                            echo -e "Subject: Build failure with ${FAILED_TEST_INFO_FILE} ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
+                        fi
                     done
                     ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || CLEANUP_FAILURE=1
                 popd
@@ -148,10 +151,7 @@
                     $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
                 fi
 
-                if [ -n "$TEST_FAILURE" ]; then
-                    echo -e "Subject: Build failure with ${FAILED_TEST_INFO_FILE} ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
-                fi
-
+                
                 if [ -n "$CLEANUP_FAILURE" ]; then
                     echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi
