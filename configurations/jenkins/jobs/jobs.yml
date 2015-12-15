@@ -38,7 +38,7 @@
             base_command="python gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR"
             if [ -n "$GERRIT_PROJECT" ]; then
                 # triggered by gerrit event
-                $base_command --projects $GERRIT_PROJECT --change-id $GERRIT_CHANGE_NUMBER poll-replica
+                $base_command --projects $GERRIT_PROJECT poll-replica --branch $GERRIT_BRANCH
             else
                 # triggered by timer
                 $base_command poll-replica
@@ -151,7 +151,6 @@
                     $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
                 fi
 
-                
                 if [ -n "$CLEANUP_FAILURE" ]; then
                     echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                 fi

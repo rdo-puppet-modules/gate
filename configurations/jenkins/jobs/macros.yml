@@ -29,7 +29,7 @@
             url: https://github.com/gabrielecerami/gitnetics.git
             skip-tag: true
             branches:
-                - reenable-fixes
+                - master
 
 - scm:
     name: khaleesi

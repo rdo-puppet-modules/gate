@@ -1,5 +1,6 @@
 puppet-ceilometer:
     deploy-name: ceilometer
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-ceilometer
@@ -29,6 +30,7 @@ puppet-ceilometer:
         puppetlabs-stdlib: functions
 puppet-ceph:
     deploy-name: ceph
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: stackforge/puppet-ceph
@@ -50,6 +52,7 @@ puppet-ceph:
         puppetlabs-stdlib: functions
 puppet-certmonger:
     deploy-name: certmonger
+    replication-strategy: change-by-change
     original:
         location: github
         name: rcritten/puppet-certmonger
@@ -69,6 +72,7 @@ puppet-certmonger:
         puppetlabs-stdlib: functions
 puppet-cinder:
     deploy-name: cinder
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-cinder
@@ -98,6 +102,7 @@ puppet-cinder:
         puppetlabs-stdlib: functions
 puppet-common:
     deploy-name: common
+    replication-strategy: change-by-change
     original:
         location: github
         name: purpleidea/puppet-common
@@ -116,6 +121,7 @@ puppet-common:
         puppetlabs-stdlib: functions
 puppet-galera:
     deploy-name: galera
+    replication-strategy: change-by-change
     original:
         location: github
         name: redhat-openstack/puppet-galera
@@ -136,6 +142,7 @@ puppet-galera:
         puppetlabs-xinetd: tests_configs,classes
 puppet-glance:
     deploy-name: glance
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-glance
@@ -163,6 +170,7 @@ puppet-glance:
         puppetlabs-stdlib: functions
 puppet-gluster:
     deploy-name: gluster
+    replication-strategy: change-by-change
     original:
         location: github
         name: purpleidea/puppet-gluster
@@ -183,6 +191,7 @@ puppet-gluster:
         puppetlabs-stdlib: functions
 puppet-gnocchi:
     deploy-name: gnocchi
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-gnocchi
@@ -207,6 +216,7 @@ puppet-gnocchi:
         puppetlabs-stdlib: functions
 puppet-heat:
     deploy-name: heat
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-heat
@@ -232,6 +242,7 @@ puppet-heat:
         puppetlabs-stdlib: functions
 puppet-horizon:
     deploy-name: horizon
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-horizon
@@ -256,6 +267,7 @@ puppet-horizon:
         puppetlabs-stdlib: functions
 puppet-ironic:
     deploy-name: ironic
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-ironic
@@ -284,6 +296,7 @@ puppet-ironic:
         puppetlabs-vcsrepo: classes,optional
 puppet-keystone:
     deploy-name: keystone
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-keystone
@@ -309,6 +322,7 @@ puppet-keystone:
         puppetlabs-vcsrepo: classes,optional
 puppet-manila:
     deploy-name: manila
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-manila
@@ -337,6 +351,7 @@ puppet-manila:
         puppetlabs-stdlib: functions
 puppet-memcached:
     deploy-name: memcached
+    replication-strategy: change-by-change
     original:
         location: github
         name: saz/puppet-memcached
@@ -356,6 +371,7 @@ puppet-memcached:
         puppetlabs-stdlib: functions
 puppet-module-collectd:
     deploy-name: module-collectd
+    replication-strategy: change-by-change
     original:
         location: github
         name: pdxcat/puppet-module-collectd
@@ -377,6 +393,7 @@ puppet-module-collectd:
         puppetlabs-stdlib: functions
 puppet-module-data:
     deploy-name: module-data
+    replication-strategy: change-by-change
     original:
         location: github
         name: ripienaar/puppet-module-data
@@ -395,6 +412,7 @@ puppet-module-data:
         puppetlabs-stdlib: functions
 puppet-module-keepalived:
     deploy-name: module-keepalived
+    replication-strategy: change-by-change
     original:
         location: github
         name: pdxcat/puppet-module-keepalived
@@ -413,6 +431,7 @@ puppet-module-keepalived:
         puppetlabs-stdlib: functions
 puppet-n1k-vsm:
     deploy-name: n1k_vsm
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: stackforge/puppet-n1k-vsm
@@ -432,6 +451,7 @@ puppet-n1k-vsm:
         puppetlabs-stdlib: functions
 puppet-nagios-openstack:
     deploy-name: nagios
+    replication-strategy: change-by-change
     original:
         location: github
         name: gildub/puppet-nagios-openstack
@@ -456,6 +476,7 @@ puppet-nagios-openstack:
         puppetlabs-stdlib: functions
 puppet-neutron:
     deploy-name: neutron
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-neutron
@@ -487,6 +508,7 @@ puppet-neutron:
         puppetlabs-sysctl: tests_configs,classes
 puppet-nova:
     deploy-name: nova
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-nova
@@ -518,6 +540,7 @@ puppet-nova:
         puppetlabs-sysctl: tests_configs,classes
 puppet-nssdb:
     deploy-name: nssdb
+    replication-strategy: change-by-change
     original:
         location: github
         name: rcritten/puppet-nssdb
@@ -536,6 +559,7 @@ puppet-nssdb:
         puppetlabs-stdlib: functions
 puppet-openstack_extras:
     deploy-name: openstack_extras
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-openstack_extras
@@ -564,6 +588,7 @@ puppet-openstack_extras:
         puppetlabs-stdlib: functions
 puppet-openstacklib:
     deploy-name: openstacklib
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-openstacklib
@@ -588,6 +613,7 @@ puppet-openstacklib:
         puppetlabs-stdlib: functions
 puppet-pacemaker:
     deploy-name: pacemaker
+    replication-strategy: change-by-change
     original:
         location: github
         name: redhat-openstack/puppet-pacemaker
@@ -608,6 +634,7 @@ puppet-pacemaker:
         puppetlabs-stdlib: functions
 puppet-puppet:
     deploy-name: puppet
+    replication-strategy: change-by-change
     original:
         location: github
         name: purpleidea/puppet-puppet
@@ -626,6 +653,7 @@ puppet-puppet:
         puppetlabs-stdlib: functions
 puppet-qpid:
     deploy-name: qpid
+    replication-strategy: change-by-change
     original:
         location: github
         name: dprince/puppet-qpid
@@ -646,6 +674,7 @@ puppet-qpid:
         puppetlabs-stdlib: functions
 puppet-redis:
     deploy-name: redis
+    replication-strategy: change-by-change
     original:
         location: github
         name: arioch/puppet-redis
@@ -664,6 +693,7 @@ puppet-redis:
         puppetlabs-stdlib: functions
 puppet-remote:
     deploy-name: remote
+    replication-strategy: change-by-change
     original:
         location: github
         name: paramite/puppet-remote
@@ -683,6 +713,7 @@ puppet-remote:
         puppetlabs-stdlib: functions
 puppet-sahara:
     deploy-name: sahara
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-sahara
@@ -710,6 +741,7 @@ puppet-sahara:
         puppetlabs-stdlib: functions
 puppet-snmp:
     deploy-name: snmp
+    replication-strategy: change-by-change
     original:
         location: github
         name: saz/puppet-snmp
@@ -728,6 +760,7 @@ puppet-snmp:
         puppetlabs-stdlib: functions
 puppet-ssh:
     deploy-name: ssh
+    replication-strategy: change-by-change
     original:
         location: github
         name: saz/puppet-ssh
@@ -746,6 +779,7 @@ puppet-ssh:
         puppetlabs-stdlib: functions
 puppet-staging:
     deploy-name: staging
+    replication-strategy: change-by-change
     original:
         location: github
         name: nanliu/puppet-staging
@@ -764,6 +798,7 @@ puppet-staging:
         puppetlabs-stdlib: functions
 puppet-swift:
     deploy-name: swift
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-swift
@@ -791,6 +826,7 @@ puppet-swift:
         puppetlabs-xinetd: tests_configs,configs
 puppet-tempest:
     deploy-name: tempest
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-tempest
@@ -816,6 +852,7 @@ puppet-tempest:
         puppetlabs-vcsrepo: classes
 puppet-timezone:
     deploy-name: timezone
+    replication-strategy: change-by-change
     original:
         location: github
         name: saz/puppet-timezone
@@ -834,6 +871,7 @@ puppet-timezone:
         puppetlabs-stdlib: functions
 puppet-tripleo:
     deploy-name: tripleo
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-tripleo
@@ -870,6 +908,7 @@ puppet-tripleo:
         puppetlabs-xinetd: ''
 puppet-trove:
     deploy-name: trove
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-trove
@@ -898,6 +937,7 @@ puppet-trove:
         puppetlabs-stdlib: functions
 puppet-tuskar:
     deploy-name: tuskar
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-tuskar
@@ -920,6 +960,7 @@ puppet-tuskar:
         puppetlabs-stdlib: functions
 puppet-vlan:
     deploy-name: vlan
+    replication-strategy: change-by-change
     original:
         location: github
         name: derekhiggins/puppet-vlan
@@ -938,6 +979,7 @@ puppet-vlan:
         puppetlabs-stdlib: functions
 puppet-vswitch:
     deploy-name: vswitch
+    replication-strategy: change-by-change
     original:
         location: openstack-gerrit
         name: openstack/puppet-vswitch
@@ -957,6 +999,7 @@ puppet-vswitch:
         puppetlabs-stdlib: functions
 puppet_aviator:
     deploy-name: aviator
+    replication-strategy: change-by-change
     original:
         location: github
         name: aimonb/puppet_aviator
@@ -975,6 +1018,7 @@ puppet_aviator:
         puppetlabs-stdlib: functions
 puppetlabs-apache:
     deploy-name: apache
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-apache
@@ -994,6 +1038,7 @@ puppetlabs-apache:
         puppetlabs-stdlib: functions
 puppetlabs-concat:
     deploy-name: concat
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-concat
@@ -1011,6 +1056,7 @@ puppetlabs-concat:
         puppetlabs-stdlib: functions
 puppetlabs-corosync:
     deploy-name: corosync
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-corosync
@@ -1031,6 +1077,7 @@ puppetlabs-corosync:
         puppetlabs-stdlib: functions
 puppetlabs-firewall:
     deploy-name: firewall
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-firewall
@@ -1049,6 +1096,7 @@ puppetlabs-firewall:
         puppetlabs-stdlib: functions
 puppetlabs-haproxy:
     deploy-name: haproxy
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-haproxy
@@ -1067,6 +1115,7 @@ puppetlabs-haproxy:
         puppetlabs-stdlib: functions
 puppetlabs-inifile:
     deploy-name: inifile
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-inifile
@@ -1085,6 +1134,7 @@ puppetlabs-inifile:
         puppetlabs-stdlib: functions
 puppetlabs-mongodb:
     deploy-name: mongodb
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-mongodb
@@ -1103,6 +1153,7 @@ puppetlabs-mongodb:
         puppetlabs-stdlib: functions
 puppetlabs-mysql:
     deploy-name: mysql
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-mysql
@@ -1122,6 +1173,7 @@ puppetlabs-mysql:
         puppetlabs-stdlib: functions
 puppetlabs-ntp:
     deploy-name: ntp
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-ntp
@@ -1140,6 +1192,7 @@ puppetlabs-ntp:
         puppetlabs-stdlib: functions
 puppetlabs-rabbitmq:
     deploy-name: rabbitmq
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-rabbitmq
@@ -1159,6 +1212,7 @@ puppetlabs-rabbitmq:
         puppetlabs-stdlib: functions
 puppetlabs-rsync:
     deploy-name: rsync
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-rsync
@@ -1178,6 +1232,7 @@ puppetlabs-rsync:
         puppetlabs-xinetd: tests_configs,classes
 puppetlabs-stdlib:
     deploy-name: stdlib
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-stdlib
@@ -1196,6 +1251,7 @@ puppetlabs-stdlib:
         puppetlabs-ntp: tests
 puppetlabs-sysctl:
     deploy-name: sysctl
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-sysctl
@@ -1214,6 +1270,7 @@ puppetlabs-sysctl:
         puppetlabs-stdlib: functions
 puppetlabs-vcsrepo:
     deploy-name: vcsrepo
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-vcsrepo
@@ -1232,6 +1289,7 @@ puppetlabs-vcsrepo:
         puppetlabs-stdlib: functions
 puppetlabs-xinetd:
     deploy-name: xinetd
+    replication-strategy: change-by-change
     original:
         location: github
         name: puppetlabs/puppetlabs-xinetd
