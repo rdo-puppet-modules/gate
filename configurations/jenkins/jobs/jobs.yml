@@ -92,11 +92,6 @@
                 python setup.py develop
                 popd
 
-                EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${GERRIT_PROJECT}.email || echo "bkero@redhat.com")
-                if [ "$EMAIL" = "bkero@redhat.com" ]; then
-                    echo "No project-specific email address found (${GERRIT_PROJECT}.email), using default (bkero@redhat.com)"
-                fi
-
                 for dir in $TESTS_BASEDIR $PROJECTS_DIR; do
                     mkdir -p $dir
                 done
@@ -113,6 +108,15 @@
 
                 pushd khaleesi
                     for test_info_file in $(find $TESTS_BASEDIR -name vars.yaml); do
+                        TARGET_PROJECT=$(cat $test_info_file | shyaml get-value target_project)
+                        RECOMBINATION_ID=$(cat $test_info_file | shyaml get-value recombination_id)
+
+                        EMAIL=$(cat $PROJECTS_CONF | shyaml get-value ${TARGET_PROJECT}.email || echo "bkero@redhat.com")
+                        if [ "$EMAIL" = "bkero@redhat.com" ]; then
+                            echo "No project-specific email address found (${TARGET_PROJECT}.email), using default (bkero@redhat.com)"
+                        fi
+
+
                         ksgen --config-dir=settings generate \
                             --provisioner=centosci \
                             --provisioner-site=default \
@@ -136,24 +140,17 @@
 
                         ./run.sh -vvvv --use ksgen_settings.yml playbooks/installer/opm/main.yml || TEST_FAILURE=1 && FAILED_TEST_INFO_FILE="$test_info_file"
                         if [ -n "$TEST_FAILURE" ]; then
-                            echo -e "Subject: Build failure with ${FAILED_TEST_INFO_FILE} ${GERRIT_CHANGE_NUMBER}\nPlease log into ci.centos.org to see the failure.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
+                            echo -e "Subject: Build failure with ${FAILED_TEST_INFO_FILE} ${RECOMBINATION_ID}\nPlease log into ci.centos.org to see the failure.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
+                        fi
+
+                        python ../gitnetics/gitnetics.py --projects-conf $PROJECTS_CONF --base-dir $PROJECTS_DIR --projects $TARGET_PROJECT vote-recombinations --recombination-id $RECOMBINATION_ID --tests-base-dir $TESTS_BASEDIR
+
+                        ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || CLEANUP_FAILURE=1
+                        if [ -n "$CLEANUP_FAILURE" ]; then
+                            echo -e "Subject: Cleanup failure with ${TARGET_PROJECT} change ${RECOMBINATION_ID}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" || /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
                         fi
                     done
-                    ./run.sh -vvvv --use ksgen_settings.yml playbooks/cleanup.yml || CLEANUP_FAILURE=1
                 popd
-
-
-                if [ -n "$GERRIT_PROJECT" ]; then
-                    # triggered by gerrit event
-                    $base_command --projects $GERRIT_PROJECT vote-recombinations --recombination-id $GERRIT_CHANGE_NUMBER --tests-base-dir $TESTS_BASEDIR
-                else
-                    # triggered by timer or by user
-                    $base_command vote-recombinations --tests-base-dir $TESTS_BASEDIR
-                fi
-
-                if [ -n "$CLEANUP_FAILURE" ]; then
-                    echo -e "Subject: Cleanup failure with ${GERRIT_PROJECT} change ${GERRIT_CHANGE_NUMBER}\nPlease contact centos-ci crew to clean up.\n\n${JOB_URL}" | /usr/sbin/sendmail -f openstack-puppet@ci.centos.org ${EMAIL}
-                fi
 
 - job:
     name: opm-ci-merge-recombinations
