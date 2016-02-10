@@ -19,13 +19,55 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper'
+require 'spec_helper_acceptance'
+require 'beaker-rspec/helpers/serverspec'
+
+describe 'apply default manifest (dup for expected state)' do
+  it 'should work with no errors' do
+    pp = <<-EOS
+include ::openstack_integration
+include ::openstack_integration::repos
+class { '::ceilometer':
+  metering_secret     => 'secrete',
+  rabbit_userid       => 'ceilometer',
+  rabbit_password     => 'an_even_bigger_secret',
+  rabbit_host         => '127.0.0.1',
+  debug               => true,
+  verbose             => true,
+}
+class { '::ceilometer::client': }
+class { '::ceilometer::collector': }
+class { '::ceilometer::expirer': }
+class { '::ceilometer::alarm::evaluator': }
+class { '::ceilometer::alarm::notifier': }
+class { '::ceilometer::agent::central': }
+class { '::ceilometer::agent::notification': }
+class { '::ceilometer::db':
+  database_connection => 'mysql://ceilometer:a_big_secret@127.0.0.1/ceilometer?charset=utf8'
+}
+class { '::ceilometer::db::mysql': 
+  password => 'a_big_secret',
+}
+class { '::ceilometer::api':
+  enabled               => true,
+  keystone_password     => 'a_big_secret',
+  keystone_identity_uri => 'http://127.0.0.1:35357/',
+}
+    EOS
+    #apply_manifest(pp, :catch_failures => true)
+    #apply_manifest(pp, :catch_changes => true)
+    # Comment out the next to lines and uncomment the previous to run locally
+    apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
+    apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
+  end
+end
+
 
 describe file('/etc/ceilometer/') do
   it { should be_directory }
-  it { should be_mode 750 }
-  it { should be_owned_by 'ceilometer' }
-  it { should be_grouped_into 'ceilometer' }
+  it { should be_mode 755 }
+  it { should be_owned_by 'root' }
+  it { should be_grouped_into 'root' }
 end
 
 describe file('/etc/ceilometer/policy.json') do
@@ -35,46 +77,44 @@ end
 describe file('/etc/ceilometer/ceilometer.conf') do
   it { should be_file }
   it { should be_mode 640 }
-  it { should be_owned_by 'ceilometer' }
+  it { should be_owned_by 'root' }
   it { should be_grouped_into 'ceilometer' }
-end
-
-describe config('/etc/ceilometer/ceilometer.conf') do
-  it { should contain_setting('database/connection').with_value('mysql://ceilometer:a_big_secret@127.0.0.1/ceilometer?charset=utf8') }
-  it { should contain_setting('DEFAULT/rabbit_host').with_value('127.0.0.1') }
-  it { should contain_setting('DEFAULT/rabbit_port').with_value(5672) }
-  it { should contain_setting('DEFAULT/rabbit_hosts').with_value('127.0.0.1:5672') }
-  it { should contain_setting('DEFAULT/rabbit_userid').with_value('ceilometer') }
-  it { should contain_setting('DEFAULT/rabbit_password').with_value('an_even_bigger_secret') }
-  it { should contain_setting('DEFAULT/rabbit_virtual_host').with_value('/') }
-  it { should contain_setting('DEFAULT/rabbit_use_ssl').with_value(false) }
-  it { should contain_setting('DEFAULT/rpc_backend').with_value('ceilometer.openstack.common.rpc.impl_kombu') }
-  it { should contain_setting('publisher/metering_secret').with_value('secrete') }
-  it { should contain_setting('DEFAULT/debug').with_value(false) }
-  it { should contain_setting('DEFAULT/verbose').with_value(false) }
-  it { should contain_setting('DEFAULT/notification_topics').with_value('notifications') }
-  it { should contain_setting('DEFAULT/log_dir').with_value('/var/log/ceilometer') }
-  #it { should contain_setting('service_credentials/os_auth_url').with_value('localhost:35357/v2.0') }
-  #it { should contain_setting('service_credentials/os_region_name').with_value('RegionOne') }
-  #it { should contain_setting('service_credentials/os_username').with_value('ceilometer') }
-  #it { should contain_setting('service_credentials/os_password').with_value('a_big_secret') }
-  #it { should contain_setting('service_credentials/os_tenant_name').with_value('services') }
-  #it { should contain_setting('coordination/backend_url').with_value() }
-  it { should contain_setting('alarm/evaluation_interval').with_value(60) }
-  it { should contain_setting('alarm/evaluation_service').with_value('ceilometer.alarm.service.SingletonAlarmService') }
-  it { should contain_setting('alarm/partition_rpc_topic').with_value('alarm_partition_coordination') }
-  it { should contain_setting('alarm/record_history').with_value(true) }
-  it { should contain_setting('keystone_authtoken/admin_tenant_name').with_value('services') }
-  it { should contain_setting('keystone_authtoken/admin_user').with_value('ceilometer') }
-  it { should contain_setting('keystone_authtoken/admin_password').with_value(property['puppet-ceilometer-keystone_password']) }
-  it { should contain_setting('api/host').with_value('0.0.0.0') }
-  it { should contain_setting('api/port').with_value(8777) }
-  it { should contain_setting('keystone_authtoken/auth_host').with_value('127.0.0.1') }
-  it { should contain_setting('keystone_authtoken/auth_port').with_value(35357) }
-  it { should contain_setting('keystone_authtoken/auth_protocol').with_value('http') }
-  it { should contain_setting('keystone_authtoken/auth_uri').with_value('http://127.0.0.1:5000/') }
-  it { should contain_setting('collector/udp_address').with_value('0.0.0.0') }
-  it { should contain_setting('collector/udp_port').with_value(4952) }
-  it { should contain_setting('notification/ack_on_event_error').with_value(true) }
-  it { should contain_setting('notification/store_events').with_value(false) }
+#  its(:content) { should match 'connection = mysql://ceilometer:a_big_secret@127.0.0.1/ceilometer?charset=utf8' }
+  its(:content) { should match '^#connection =' }
+  its(:content) { should match '^rabbit_host = 127.0.0.1$' }
+  its(:content) { should match '^rabbit_port = 5672$' }
+  its(:content) { should match '^rabbit_hosts = 127.0.0.1:5672$' }
+  its(:content) { should match '^rabbit_userid = ceilometer$' }
+  its(:content) { should match '^rabbit_password = an_even_bigger_secret$' }
+  its(:content) { should match '^rabbit_virtual_host = /$' }
+  its(:content) { should match '^#rabbit_use_ssl = false$' }
+  its(:content) { should match '^rpc_backend = rabbit$' }
+  its(:content) { should match '^metering_secret=secrete$' }
+  its(:content) { should match '^debug = True$' }
+  its(:content) { should match '^verbose = True$' }
+  its(:content) { should match '^notification_topics = notifications$' }
+  its(:content) { should match '^log_dir = /var/log/ceilometer$' }
+  #its(:content) { should match 'os_auth_url = localhost:35357/v2.0') }
+  #its(:content) { should match 'os_region_name = RegionOne') }
+  #its(:content) { should match 'os_username = ceilometer') }
+  #its(:content) { should match 'os_password = a_big_secret') }
+  #its(:content) { should match 'os_tenant_name = services') }
+  #its(:content) { should match 'backend_url = ) }
+  its(:content) { should match '^evaluation_interval = 60$' }
+  its(:content) { should match '^evaluation_service=ceilometer.alarm.service.SingletonAlarmService$' }
+  its(:content) { should match '^partition_rpc_topic=alarm_partition_coordination$' }
+  its(:content) { should match '^#record_history = true$' }
+  its(:content) { should match '^admin_tenant_name = services$' }
+  its(:content) { should match '^admin_user = ceilometer$' }
+  its(:content) { should match '^host = 0.0.0.0$' }
+  its(:content) { should match '^port = 8777$' }
+  its(:content) { should match '^#auth_host = 127.0.0.1$' }
+  its(:content) { should match '^#auth_port = 35357$' }
+  its(:content) { should match '^#auth_protocol = https$' }
+  its(:content) { should match '^admin_password = a_big_secret$' }
+  its(:content) { should match '^auth_uri = http://127.0.0.1:5000/$' }
+  its(:content) { should match '^udp_address = 0.0.0.0$' }
+  its(:content) { should match '^udp_port = 4952$' }
+  its(:content) { should match '^#ack_on_event_error = true$' }
+  its(:content) { should match '^#store_events = false$' }
 end

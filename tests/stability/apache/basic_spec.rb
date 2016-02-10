@@ -20,14 +20,22 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper'
 
-pp = <<-EOS
-class {'::apache': }
-EOS
+require 'spec_helper_acceptance'
+require 'beaker-rspec/helpers/serverspec'
 
-apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
+describe 'apply default manifest (dup for expected state)' do
+  it 'should work with no errors' do
+    pp = <<-EOS
+      class {'apache': }
+    EOS
+    #apply_manifest(pp, :catch_failures => true)
+    #apply_manifest(pp, :catch_changes => true)
+    # Comment out the next to lines and uncomment the previous to run locally
+    apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
+    apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
+  end
+end
 
 describe package('httpd') do
   it { should be_installed }
@@ -35,18 +43,18 @@ end
 
 describe service('httpd') do
   it { should be_enabled }
-  it { should be_running.under('apache') }
+  it { should be_running }
 end
 
-describe user('httpd') do
+describe user('apache') do
   it { should exist }
-  it { should belong_to_group 'httpd' }
+  it { should belong_to_group 'apache' }
   it { should have_uid 48 }
   it { should have_home_directory '/usr/share/httpd' }
   it { have_login_shell '/sbin/nologin' }
 end
 
-describe group('httpd') do
+describe group('apache') do
   it { should exist }
   it { should have_gid 48 }
 end
@@ -83,13 +91,14 @@ describe file('/etc/httpd/conf/httpd.conf') do
   its(:content) { should match '^ErrorLog "/var/log/httpd/error_log"$' }
   its(:content) { should match '^LogLevel warn$' }
   its(:content) { should match '^EnableSendfile On$' }
-  its(:content) { should match '^Include "/etc/httpd/conf.d/\*.load"$' }
+  its(:content) { should match(/^Include \"\/etc\/httpd\/conf.modules.d\/\*.load"$/) }
+  its(:content) { should match(/^Include \"\/etc\/httpd\/conf.modules.d\/\*.conf"$/) }
   its(:content) { should match '^Include "/etc/httpd/conf/ports.conf"$' }
-  its(:content) { should match '^LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined$' }
-  its(:content) { should match '^LogFormat "%h %l %u %t \"%r\" %>s %b" common$' }
+  its(:content) { should match '^IncludeOptional "/etc/httpd/conf.d/\*.conf"$' }
+  its(:content) { should match(/^LogFormat "%h %l %u %t \\"%r\\" %>s %b \\"%{Referer}i\\" \\"%{User-Agent}i\\"" combined$/) }
+  its(:content) { should match(/^LogFormat "%h %l %u %t \\"%r\\" %>s %b" common$/) }
   its(:content) { should match '^LogFormat "%{Referer}i -> %U" referer$' }
   its(:content) { should match '^LogFormat "%{User-agent}i" agent$' }
-  its(:content) { should match '^IncludeOptional "/etc/httpd/conf.d/\*.conf"$' }
 end
 
 describe file('/etc/httpd/conf/magic') do
@@ -109,7 +118,7 @@ describe file('/etc/httpd/conf/ports.conf') do
 end
 
 describe file('/etc/httpd/conf.d') do
-  it { should be_diretory }
+  it { should be_directory }
   it { should be_mode 755 }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
@@ -121,6 +130,7 @@ describe file('/etc/httpd/conf.d/15-default.conf') do
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
   its(:md5sum) { should eq 'a430bf4e003be964b419e7aea251c6c4' }
+end
 
 describe file('/etc/httpd/conf.modules.d') do
   it { should be_directory }
@@ -130,11 +140,11 @@ describe file('/etc/httpd/conf.modules.d') do
 end
 
 describe file('/etc/httpd/logs') do
-  it { should be_linked_to '/var/log/httpd' }
+  it { should be_linked_to '../../var/log/httpd' }
 end
 
 describe file('/etc/httpd/modules') do
-  it { should be_linked_to '/usr/lib64/httpd/modules' }
+  it { should be_linked_to '../../usr/lib64/httpd/modules' }
 end
 
 describe file('/etc/httpd/run') do
@@ -143,7 +153,7 @@ end
 
 describe file('/var/log/httpd') do
   it { should be_directory }
-  it { should be_mode 755 }
+  it { should be_mode 700 }
   it { should be_owned_by 'root' }
   it { should be_grouped_into 'root' }
 end
@@ -159,5 +169,6 @@ end
 
 describe file('/run/httpd') do
   it { should be_directory }
-  it { should be_owned_by 'apache' }
+  it { should be_owned_by 'root' }
   it { should be_grouped_into 'apache' }
+end

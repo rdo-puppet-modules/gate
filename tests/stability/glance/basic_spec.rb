@@ -19,8 +19,47 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper'
+require 'spec_helper_acceptance'
+require 'beaker-rspec/helpers/serverspec'
 
+describe 'apply default manifest (dup for expected state)' do
+  it 'should work with no errors' do
+    pp = <<-EOS
+include ::openstack_integration
+include ::openstack_integration::repos
+include ::openstack_integration::mysql
+
+class { 'glance::api':
+  verbose             => true,
+  keystone_tenant     => 'services',
+  keystone_user       => 'glance',
+  keystone_password   => '12345',
+  database_connection => 'mysql://glance:12345@127.0.0.1/glance',
+}
+
+class { 'glance::registry':
+  verbose             => true,
+  keystone_tenant     => 'services',
+  keystone_user       => 'glance',
+  keystone_password   => '12345',
+  database_connection => 'mysql://glance:12345@127.0.0.1/glance',
+}
+
+class { 'glance::db::mysql':
+  password      => '12345',
+  allowed_hosts => '%',
+}
+
+class { 'glance::backend::file': }
+    EOS
+
+    apply_manifest(pp, :catch_failures => true)
+    apply_manifest(pp, :catch_changes => true)
+    # Comment out the next to lines and uncomment the previous to run locally
+    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
+    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
+  end
+end
 
 describe file('/etc/glance/glance-api.conf') do
   it { should be_file }
@@ -29,91 +68,96 @@ describe file('/etc/glance/glance-api.conf') do
   it { should be_grouped_into 'glance' }
 end
 
-describe config('/etc/glance/glance-api.conf') do
-  #it { should contain_setting('DEFAULT/rabbit_host').with_value() }
-  #it { should contain_setting('DEFAULT/rabbit_port').with_value(5672) }
-  #it { should contain_setting('DEFAULT/rabbit_hosts').with_value() }
-  #it { should contain_setting('DEFAULT/rabbit_ha_queues').with_value(false) }
-  #it { should contain_setting('DEFAULT/notification_driver').with_value('messaging') }
-  #it { should contain_setting('DEFAULT/rabbit_virtual_host').with_value('/') }
-  #it { should contain_setting('DEFAULT/rabbit_password').with_value() }
-  #it { should contain_setting('DEFAULT/rabbit_userid').with_value() }
-  #it { should contain_setting('DEFAULT/rabbit_notification_exchange').with_value('glance') }
-  #it { should contain_setting('DEFAULT/rabbit_notification_topic').with_value('notifications') }
-  #it { should contain_setting('DEFAULT/rabbit_use_ssl').with_value(false) }
-  #it { should contain_setting('DEFAULT/amqp_durable_queues').with_value(false) }
-  it { should contain_setting('DEFAULT/verbose').with_value(false) }
-  it { should contain_setting('DEFAULT/debug').with_value(false) }
-  it { should contain_setting('DEFAULT/bind_host').with_value('0.0.0.0') }
-  it { should contain_setting('DEFAULT/bind_port').with_value(9292) }
-  it { should contain_setting('DEFAULT/backlog').with_value(4096) }
-  it { should contain_setting('DEFAULT/workers') }
-  it { should contain_setting('DEFAULT/show_image_direct_url').with_value(false) }
-  it { should contain_setting('DEFAULT/image_cache_dir').with_value('/var/lib/glance/image-cache') }
-  it { should contain_setting('DEFAULT/os_region_name').with_value('RegionOne') }
-  it { should contain_setting('DEFAULT/registry_host').with_value('0.0.0.0') }
-  it { should contain_setting('DEFAULT/registry_port').with_value(9191) }
-  it { should contain_setting('DEFAULT/registry_client_protocol').with_value('http') }
-  it { should contain_setting('keystone_authtoken/auth_uri').with_value('http://127.0.0.1:5000/') }
-  it { should contain_setting('keystone_authtoken/auth_host').with_value('127.0.0.1') }
-  it { should contain_setting('keystone_authtoken/auth_port').with_value(35357) }
-  it { should contain_setting('keystone_authtoken/auth_protocol').with_value('http') }
-  it { should contain_setting('keystone_authtoken/admin_tenant_name').with_value('services') }
-  it { should contain_setting('keystone_authtoken/admin_user').with_value('glance') }
-  it { should contain_setting('keystone_authtoken/admin_password').with_value('a_big_secret') }
-  it { should contain_setting('paste_deploy/flavor').with_value('keystone') }
-  it { should contain_setting('DEFAULT/log_file').with_value('/var/log/glance/api.log') }
-  it { should contain_setting('DEFAULT/log_dir').with_value('/var/log/glance') }
-  it { should contain_setting('DEFAULT/use_syslog').with_value(false) }
-  #it { should contain_setting('glance_store/default_store').with_value('file') }
-  #it { should contain_setting('glance_store/filesystem_store_datadir').with_value('/var/lib/glance/images/') }
+describe file('/etc/glance/glance-api.conf') do
+  it { should be_file }
+  it { should be_mode 640 }
+  it { should be_owned_by 'glance' }
+  it { should be_grouped_into 'glance' }
+  #its(:content) { should match 'rabbit_host = ) }
+  #its(:content) { should match 'rabbit_port = 5672) }
+  #its(:content) { should match 'rabbit_hosts = ) }
+  #its(:content) { should match 'rabbit_ha_queues = false) }
+  #its(:content) { should match 'notification_driver = messaging') }
+  #its(:content) { should match 'rabbit_virtual_host = /') }
+  #its(:content) { should match 'rabbit_password = ) }
+  #its(:content) { should match 'rabbit_userid = ) }
+  #its(:content) { should match 'rabbit_notification_exchange = glance') }
+  #its(:content) { should match 'rabbit_notification_topic = notifications') }
+  #its(:content) { should match 'rabbit_use_ssl = false) }
+  #its(:content) { should match 'amqp_durable_queues = false) }
+  its(:content) { should match '^verbose=True$' }
+  its(:content) { should match '^debug=False$' }
+  its(:content) { should match '^bind_host=0.0.0.0$' }
+  its(:content) { should match '^bind_port=9292$' }
+  its(:content) { should match '^backlog=4096$' }
+  its(:content) { should match '^workers=1$' }
+  its(:content) { should match '^show_image_direct_url=False$' }
+  its(:content) { should match '^image_cache_dir=/var/lib/glance/image-cache$' }
+  its(:content) { should match '^os_region_name=RegionOne$' }
+  its(:content) { should match '^registry_host=0.0.0.0$' }
+  its(:content) { should match '^registry_port=9191$' }
+  its(:content) { should match '^registry_client_protocol=http$' }
+  its(:content) { should match '^auth_uri=http://127.0.0.1:5000/$' }
+  its(:content) { should match '^#auth_host=127.0.0.1$' }
+  its(:content) { should match '^#auth_port=35357$' }
+  its(:content) { should match '^#auth_protocol=http$' }
+  its(:content) { should match '^admin_tenant_name=services$' }
+  its(:content) { should match '^admin_user=glance$' }
+  its(:content) { should match '^admin_password=12345$' }
+  its(:content) { should match '^flavor=keystone$' }
+  its(:content) { should match '^log_file=/var/log/glance/api.log$' }
+  its(:content) { should match '^log_dir=/var/log/glance$' }
+  its(:content) { should match '^use_syslog=False$' }
+  #its(:content) { should match 'default_store = file' }
+  #its(:content) { should match 'filesystem_store_datadir = /var/lib/glance/images/' }
 end
 
-#describe file('/etc/glance/glance-cache.conf') do
-#  it { should be_file }
-#  it { should be_mode 640 }
-#  it { should be_owned_by 'glance' }
-#  it { should be_grouped_into 'glance' }
-#end
-
-#describe config('/etc/glance/glance-cache.conf') do
-#  it { should contain_setting('DEFAULT/verbose').with_value(false) }
-#  it { should contain_setting('DEFAULT/debug').with_value(false) }
-#  it { should contain_setting('DEFAULT/os_region_name').with_value('RegionOne') }
-#  it { should contain_setting('DEFAULT/registry_host').with_value('0.0.0.0') }
-#  it { should contain_setting('DEFAULT/registry_port').with_value(9191) }
-#  it { should contain_setting('DEFAULT/auth_url').with_value('http://localhost:5000/v2.0') }
-#  it { should contain_setting('DEFAULT/admin_tenant_name').with_value('services') }
-#  it { should contain_setting('DEFAULT/admin_user').with_value('glance') }
-#  it { should contain_setting('DEFAULT/admin_password').with_value('a_big_secret') }
-#  it { should contain_setting('glance_store/filesystem_store_datadir').with_value('/var/lib/glance/images/') }
-#end
-
-describe file('/etc/glance/glance-registry.conf') do
+describe file('/etc/glance/glance-cache.conf') do
   it { should be_file }
   it { should be_mode 640 }
   it { should be_owned_by 'glance' }
   it { should be_grouped_into 'glance' }
 end
 
-describe config('/etc/glance/glance-registry.conf') do
-  it { should contain_setting('database/connection').with_value('mysql://glance:a_big_secret@127.0.0.1/glance?charset=utf8') }
-  it { should contain_setting('database/idle_timeout').with_value(3600) }
-  it { should contain_setting('DEFAULT/verbose').with_value(false) }
-  it { should contain_setting('DEFAULT/debug').with_value(false) }
-  it { should contain_setting('DEFAULT/bind_host').with_value('0.0.0.0') }
-  it { should contain_setting('DEFAULT/bind_port').with_value(9191) }
-  it { should contain_setting('keystone_authtoken/auth_uri').with_value('http://127.0.0.1:5000/') }
-  it { should contain_setting('keystone_authtoken/auth_host').with_value('127.0.0.1') }
-  it { should contain_setting('keystone_authtoken/auth_port').with_value(35357) }
-  it { should contain_setting('keystone_authtoken/auth_protocol').with_value('http') }
-  it { should contain_setting('keystone_authtoken/admin_tenant_name').with_value('services') }
-  it { should contain_setting('keystone_authtoken/admin_user').with_value('glance') }
-  it { should contain_setting('keystone_authtoken/admin_password').with_value('a_big_secret') }
-  it { should contain_setting('paste_deploy/flavor').with_value('keystone') }
-  it { should contain_setting('DEFAULT/log_file').with_value('/var/log/glance/registry.log') }
-  it { should contain_setting('DEFAULT/log_dir').with_value('/var/log/glance') }
-  it { should contain_setting('DEFAULT/use_syslog').with_value(false) }
+describe file('/etc/glance/glance-cache.conf') do
+  it { should be_file }
+  it { should be_mode 640 }
+  it { should be_owned_by 'glance' }
+  it { should be_grouped_into 'glance' }
+  its(:content) { should match '^verbose=True$' }
+  its(:content) { should match '^debug=False$' }
+  its(:content) { should match '^os_region_name=RegionOne$' }
+  its(:content) { should match '^registry_host=0.0.0.0$' }
+  its(:content) { should match '^registry_port=9191$' }
+  its(:content) { should match '^auth_url=http://127.0.0.1:5000/$' }
+  its(:content) { should match '^admin_tenant_name=services$' }
+  its(:content) { should match '^admin_user=glance$' }
+  its(:content) { should match '^admin_password=12345$' }
+  its(:content) { should match '^filesystem_store_datadir=/var/lib/glance/images/$' }
+end
+
+describe file('/etc/glance/glance-registry.conf') do
+  it { should be_file }
+  it { should be_mode 640 }
+  it { should be_owned_by 'glance' }
+  it { should be_grouped_into 'glance' }
+  its(:content) { should match '^connection=mysql://glance:12345@127.0.0.1/glance$' }
+  its(:content) { should match '^#idle_timeout=3600$' }
+  its(:content) { should match '^verbose=True$' }
+  its(:content) { should match '^debug=False$' }
+  its(:content) { should match '^bind_host=0.0.0.0$' }
+  its(:content) { should match '^bind_port=9191$' }
+  its(:content) { should match '^auth_uri=http://127.0.0.1:5000/$' }
+  its(:content) { should match '^#auth_host=127.0.0.1$' }
+  its(:content) { should match '^#auth_port=35357$' }
+  its(:content) { should match '^#auth_protocol=http$' }
+  its(:content) { should match '^admin_tenant_name=services$' }
+  its(:content) { should match '^admin_user=glance$' }
+  its(:content) { should match '^admin_password=12345$' }
+  its(:content) { should match '^flavor=keystone$' }
+  its(:content) { should match '^log_file=/var/log/glance/registry.log$' }
+  its(:content) { should match '^log_dir=/var/log/glance$' }
+  its(:content) { should match '^use_syslog=False$' }
 end
 
 describe file('/etc/glance/glance-registry-paste.ini') do

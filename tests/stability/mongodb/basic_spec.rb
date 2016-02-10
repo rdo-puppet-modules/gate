@@ -19,14 +19,21 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper'
+require 'spec_helper_acceptance'
+require 'beaker-rspec/helpers/serverspec'
 
-pp = <<-EOS
-class {'::mongodb::server': }
-EOS
-
-apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
+describe 'apply default manifest (dup for expected state)' do
+  it 'should work with no errors' do
+    pp = <<-EOS
+      class { '::mongodb::server': }
+    EOS
+    apply_manifest(pp, :catch_failures => true)
+    apply_manifest(pp, :catch_changes => true)
+    # Comment out the next to lines and uncomment the previous to run locally
+    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
+    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
+  end
+end
 
 describe package('mongodb_server') do
   it { should be_installed.by('yum') }
