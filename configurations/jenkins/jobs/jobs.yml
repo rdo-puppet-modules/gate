@@ -84,6 +84,7 @@
                     key_file: !join [ !env HOME, /.ssh/id_rsa]
                 installer:
                     type: opm
+                    remote_user: root
                 EOF
                 popd
 
