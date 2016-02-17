@@ -129,7 +129,7 @@
                             --installer-topology=aio \
                             --job=opm \
                             --product=rdo \
-                            --product-version=kilo \
+                            --product-version=liberty \
                             --product-version-repo=delorean \
                             --extra-vars installer.short_type=opm \
                             --extra-vars distro.full_version="7.0" \
@@ -244,7 +244,7 @@
                       --installer-topology=aio \
                       --job=opm \
                       --product=rdo \
-                      --product-version=kilo \
+                      --product-version=liberty \
                       --product-version-repo=delorean \
                       --extra-vars @projects-vars.yaml \
                       --extra-vars local_spec_dir=$WORKSPACE/gate/specs/ \
