@@ -19,47 +19,7 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp = <<-EOS
-include ::openstack_integration
-include ::openstack_integration::repos
-include ::openstack_integration::mysql
-
-class { 'glance::api':
-  verbose             => true,
-  keystone_tenant     => 'services',
-  keystone_user       => 'glance',
-  keystone_password   => '12345',
-  database_connection => 'mysql://glance:12345@127.0.0.1/glance',
-}
-
-class { 'glance::registry':
-  verbose             => true,
-  keystone_tenant     => 'services',
-  keystone_user       => 'glance',
-  keystone_password   => '12345',
-  database_connection => 'mysql://glance:12345@127.0.0.1/glance',
-}
-
-class { 'glance::db::mysql':
-  password      => '12345',
-  allowed_hosts => '%',
-}
-
-class { 'glance::backend::file': }
-    EOS
-
-    apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
-    # Comment out the next to lines and uncomment the previous to run locally
-    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
+require 'serverspec'
 
 describe file('/etc/glance/glance-api.conf') do
   it { should be_file }

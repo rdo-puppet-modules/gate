@@ -19,35 +19,7 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp = <<-EOS
-      class { '::openstack_integration':
-        before => Class['::keystone'] }
-      class { '::openstack_integration::repos': 
-        before => Class['::keystone'] }
-
-      class { '::keystone':
-        admin_token => 'my_special_token',
-	  }
-
-	  class { 'keystone::roles::admin':
-		email        => 'admin@example.com',
-  		password     => 'super_secret', 
-	  }
-	  class { 'keystone::endpoint': }
-    EOS
-    apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
-    # Comment out the next to lines and uncomment the previous to run locally
-    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
-
+require 'serverspec'
 
 describe file('/etc/keystone') do
   it { should be_directory }

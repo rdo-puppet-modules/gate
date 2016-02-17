@@ -19,78 +19,7 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp=<<-EOS
-      include ::openstack_integration
-      include ::openstack_integration::repos
-      include ::openstack_integration::rabbitmq
-      include ::openstack_integration::mysql
-      include ::openstack_integration::keystone
-
-      rabbitmq_user { 'nova':
-        admin    => true,
-        password => 'an_even_bigger_secret',
-        provider => 'rabbitmqctl',
-        require  => Class['rabbitmq'],
-      }
-
-      rabbitmq_user_permissions { 'nova@/':
-        configure_permission => '.*',
-        write_permission     => '.*',
-        read_permission      => '.*',
-        provider             => 'rabbitmqctl',
-        require              => Class['rabbitmq'],
-      }
-
-      # Nova resources
-      class { '::nova':
-        database_connection => 'mysql+pymysql://nova:a_big_secret@127.0.0.1/nova?charset=utf8',
-        rabbit_userid       => 'nova',
-        rabbit_password     => 'an_even_bigger_secret',
-        image_service       => 'nova.image.glance.GlanceImageService',
-        glance_api_servers  => 'localhost:9292',
-        verbose             => true,
-        debug               => true,
-        rabbit_host         => '127.0.0.1',
-      }
-      class { '::nova::db::mysql':
-        password => 'a_big_secret',
-      }
-      class { '::nova::keystone::auth':
-        password => 'a_big_secret',
-      }
-      class { '::nova::api':
-        admin_password => 'a_big_secret',
-        identity_uri   => 'http://127.0.0.1:35357/',
-        osapi_v3       => true,
-      }
-      class { '::nova::cert': }
-      class { '::nova::client': }
-      class { '::nova::conductor': }
-      class { '::nova::consoleauth': }
-      class { '::nova::cron::archive_deleted_rows': }
-      class { '::nova::compute': vnc_enabled => true }
-      class { '::nova::compute::libvirt':
-        migration_support => true,
-        vncserver_listen  => '0.0.0.0',
-      }
-      class { '::nova::scheduler': }
-      class { '::nova::vncproxy': }
-      # TODO: networking with neutron
-	EOS
-
-	# Uncomment to run locally
-    apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
-	# Uncomment to run in OPM-CI
-    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
+require 'serverspec'
 
 describe file('/etc/nova/nova.conf') do
   it { should be_file }

@@ -19,38 +19,9 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
+require 'serverspec'
 
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp = <<-EOS
-      class { '::openstack_integration':
-        before => Class['::manila'] }
-      class { '::openstack_integration::repos': 
-        before => Class['::manila'] }
-
-      class { '::manila':
-        sql_connection      => 'mysql+pymysql://manila:a_big_secret@127.0.0.1/manila?charset=utf8',
-        rabbit_userid       => 'manila',
-        rabbit_password     => 'an_even_bigger_secret',
-        rabbit_host         => '127.0.0.1',
-        debug               => true,
-        verbose             => true,
-      }
-
-	EOS
-    apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
-    # Comment out the next to lines and uncomment the previous to run locally
-    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
-
-
- file('/etc/manila') do
+file('/etc/manila') do
   it { should be_directory }
   it { should be_mode 755 }
   it { should be_owned_by 'root' }

@@ -19,71 +19,7 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp = <<-EOS
-      include ::openstack_integration
-      include ::openstack_integration::repos
-      include ::openstack_integration::rabbitmq
-      include ::openstack_integration::mysql
-      include ::openstack_integration::keystone
-
-      rabbitmq_user { 'heat':
-        admin    => true,
-        password => 'an_even_bigger_secret',
-        provider => 'rabbitmqctl',
-        require  => Class['rabbitmq'],
-      }
-
-      rabbitmq_user_permissions { 'heat@/':
-        configure_permission => '.*',
-        write_permission     => '.*',
-        read_permission      => '.*',
-        provider             => 'rabbitmqctl',
-        require              => Class['rabbitmq'],
-      }
-
-      # heat resources
-      class { '::heat':
-        rabbit_userid       => 'heat',
-        rabbit_password     => 'an_even_bigger_secret',
-        rabbit_host         => '127.0.0.1',
-        database_connection => 'mysql+pymysql://heat:a_big_secret@127.0.0.1/heat?charset=utf8',
-        identity_uri        => 'http://127.0.0.1:35357/',
-        keystone_password   => 'a_big_secret',
-        debug               => true,
-        verbose             => true,
-      }
-      class { '::heat::db::mysql':
-        password => 'a_big_secret',
-      }
-      class { '::heat::keystone::auth':
-        password                  => 'a_big_secret',
-        configure_delegated_roles => true,
-      }
-      class { '::heat::keystone::domain':
-        domain_password => 'oh_my_no_secret',
-      }
-      class { '::heat::client': }
-      class { '::heat::api': }
-      class { '::heat::engine':
-        auth_encryption_key => '1234567890AZERTYUIOPMLKJHGFDSQ12',
-      }
-      class { '::heat::api_cloudwatch': }
-      class { '::heat::api_cfn': }
-	EOS
-
-    apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
-    # Comment out the next to lines and uncomment the previous to run locally
-    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
-
+require 'serverspec'
 
 describe file('/etc/heat/') do
   it { should be_directory }

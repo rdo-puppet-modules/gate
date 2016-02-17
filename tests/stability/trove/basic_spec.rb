@@ -19,73 +19,7 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp = <<-EOS
-      include ::openstack_integration
-      include ::openstack_integration::repos
-      include ::openstack_integration::rabbitmq
-      include ::openstack_integration::mysql
-      include ::openstack_integration::keystone
-
-      rabbitmq_user { 'trove':
-        admin    => true,
-        password => 'an_even_bigger_secret',
-        provider => 'rabbitmqctl',
-        require  => Class['rabbitmq'],
-      }
-
-      rabbitmq_user_permissions { 'trove@/':
-        configure_permission => '.*',
-        write_permission     => '.*',
-        read_permission      => '.*',
-        provider             => 'rabbitmqctl',
-        require              => Class['rabbitmq'],
-      }
-
-      # Trove resources
-      class { '::trove':
-        database_connection   => 'mysql+pymysql://trove:a_big_secret@127.0.0.1/trove?charset=utf8',
-        rabbit_userid         => 'trove',
-        rabbit_password       => 'an_even_bigger_secret',
-        rabbit_host           => '127.0.0.1',
-        nova_proxy_admin_pass => 'a_big_secret',
-      }
-      class { '::trove::db::mysql':
-        password => 'a_big_secret',
-      }
-      class { '::trove::keystone::auth':
-        password => 'a_big_secret',
-      }
-      class { '::trove::api':
-        keystone_password => 'a_big_secret',
-        identity_uri      => 'http://127.0.0.1:35357/',
-        auth_uri          => 'http://127.0.0.1:5000/',
-        debug             => true,
-        verbose           => true,
-      }
-      class { '::trove::client': }
-      class { '::trove::conductor':
-        debug   => true,
-        verbose => true,
-      }
-      class { '::trove::taskmanager':
-        debug   => true,
-        verbose => true,
-      }
-      class { '::trove::quota': }
-    EOS
-    apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
-    # Comment out the next to lines and uncomment the previous to run locally
-    #apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    #apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
-
+require 'serverspec'
 
 describe file('/etc/trove') do
   it { should be_directory }

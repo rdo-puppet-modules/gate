@@ -19,49 +19,7 @@
 # Adds OPM CI path to LOAD_PATH
 $:.unshift(File.dirname(File.dirname(__FILE__)))
 
-require 'spec_helper_acceptance'
-require 'beaker-rspec/helpers/serverspec'
-
-describe 'apply default manifest (dup for expected state)' do
-  it 'should work with no errors' do
-    pp = <<-EOS
-include ::openstack_integration
-include ::openstack_integration::repos
-class { '::ceilometer':
-  metering_secret     => 'secrete',
-  rabbit_userid       => 'ceilometer',
-  rabbit_password     => 'an_even_bigger_secret',
-  rabbit_host         => '127.0.0.1',
-  debug               => true,
-  verbose             => true,
-}
-class { '::ceilometer::client': }
-class { '::ceilometer::collector': }
-class { '::ceilometer::expirer': }
-class { '::ceilometer::alarm::evaluator': }
-class { '::ceilometer::alarm::notifier': }
-class { '::ceilometer::agent::central': }
-class { '::ceilometer::agent::notification': }
-class { '::ceilometer::db':
-  database_connection => 'mysql://ceilometer:a_big_secret@127.0.0.1/ceilometer?charset=utf8'
-}
-class { '::ceilometer::db::mysql': 
-  password => 'a_big_secret',
-}
-class { '::ceilometer::api':
-  enabled               => true,
-  keystone_password     => 'a_big_secret',
-  keystone_identity_uri => 'http://127.0.0.1:35357/',
-}
-    EOS
-    #apply_manifest(pp, :catch_failures => true)
-    #apply_manifest(pp, :catch_changes => true)
-    # Comment out the next to lines and uncomment the previous to run locally
-    apply_manifest(pp, :catch_failures => true, :modulepath => "/usr/share/openstack-puppet/modules")
-    apply_manifest(pp, :catch_changes => true, :modulepath => "/usr/share/openstack-puppet/modules")
-  end
-end
-
+require 'serverspec'
 
 describe file('/etc/ceilometer/') do
   it { should be_directory }
